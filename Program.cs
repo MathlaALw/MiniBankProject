@@ -371,7 +371,58 @@
         //3. Withdraw Money
         static void WithdrawMoney()
         {
-         
+
+            Console.Clear();
+            Console.WriteLine("-- Withdraw Money --");
+            bool isTrue = false;
+            while (!isTrue)
+            {
+                try
+                {
+                    Console.Write("Enter your account number: ");
+                    int accountNumber = int.Parse(Console.ReadLine());
+                    if (!accountNumbers.Contains(accountNumber))
+                    {
+                        Console.WriteLine("Invalid account number.");
+                        isTrue = false;
+                    }
+                    else
+                    {
+                        Console.Write("Enter amount to withdraw: ");
+                        double amount = double.Parse(Console.ReadLine());
+                        if (amount <= 0)
+                        {
+                            Console.WriteLine("Amount must be greater than zero.");
+                            isTrue = false;
+                        }
+                        else
+                        {
+                            int index = accountNumbers.IndexOf(accountNumber);
+                            if (balances[index] - amount < MinimumBalance)
+                            {
+                                Console.WriteLine("Cannot withdraw " + amount + " Minimum balance of " + MinimumBalance + " must be maintained.");
+                                isTrue = false;
+                            }
+                            else
+                            {
+                                isTrue = true;
+                                balances[index] -= amount;
+                                Console.WriteLine("Withdrew " + amount + " from account number " + accountNumber + " New balance: " + balances[index]);
+                                Console.WriteLine("Press any key to return to the end user menu.");
+                                Console.ReadKey();
+
+                            }
+                        }
+                    }
+
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+
+            }
 
 
 
