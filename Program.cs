@@ -645,7 +645,21 @@
         // save reviews to file
         static void SaveReviews()
         {
-           
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(ReviewsFilePath))
+                {
+                    foreach (string review in reviewsStack)
+                    {
+                        writer.WriteLine(review);
+                    }
+                }
+                Console.WriteLine("Reviews saved successfully.");
+            }
+            catch
+            {
+                Console.WriteLine("Error saving file.");
+            }
 
         }
         // load accounts information from file
