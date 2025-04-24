@@ -665,7 +665,43 @@
         // load accounts information from file
         static void LoadAccountsInformationFromFile()
         {
-          
+            try
+            {
+                if (!File.Exists(AccountsFilePath))
+                {
+                    Console.WriteLine("No saved data found.");
+                    return;
+                }
+                accountNames.Clear();
+                accountNumbers.Clear();
+                nationalIds.Clear();
+                balances.Clear();
+                requestStatuse.Clear();
+
+                using (StreamReader reader = new StreamReader(AccountsFilePath))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        string[] parts = line.Split(':');
+                        int accountNum = int.Parse(parts[0]);
+                        accountNumbers.Add(accountNum);
+                        accountNames.Add(parts[1]);
+                        nationalIds.Add(parts[2]);
+                        balances.Add(double.Parse(parts[3]));
+                        requestStatuse.Add(parts[4]);
+
+                        if (accountNum > lastAccountNumber)
+                            lastAccountNumber = accountNum;
+                    }
+                }
+
+                Console.WriteLine("Accounts loaded successfully.");
+            }
+            catch
+            {
+                Console.WriteLine("Error loading file.");
+            }
         }
         // load reviews from file
         static void LoadReviews()
