@@ -582,8 +582,21 @@
         //3. view all account requests
         static void ViewAllAccountRequests()
         {
+            Console.Clear();
+            Console.WriteLine("\n--- All Accounts ---");
+            for (int i = 0; i < accountNumbers.Count; i++)
+            {
+                //Console.WriteLine($"{accountNumbers[i]} - {accountNames[i]} - Balance: {balances[i]} - ");
+                Console.WriteLine("--------------------------------------------------");
+                Console.WriteLine("Account Number: " + accountNumbers[i]);
+                Console.WriteLine("Account Name: " + accountNames[i]);
+                Console.WriteLine("Account Balance: " + balances[i]);
+                Console.WriteLine("Account Status: " + requestStatuse[i]);
+                Console.WriteLine("--------------------------------------------------");
+            }
+            Console.WriteLine("Press any key to return to the admin menu.");
+            Console.ReadKey();
 
-          
         }
 
         //3. View Reviews
