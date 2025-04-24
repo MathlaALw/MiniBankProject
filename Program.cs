@@ -706,7 +706,27 @@
         // load reviews from file
         static void LoadReviews()
         {
-           
+            try
+            {
+                if (!File.Exists(ReviewsFilePath))
+                {
+                    Console.WriteLine("No saved reviews found.");
+                    return;
+                }
+                using (StreamReader reader = new StreamReader(ReviewsFilePath))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        reviewsStack.Push(line);
+                    }
+                }
+                Console.WriteLine("Reviews loaded successfully.");
+            }
+            catch
+            {
+                Console.WriteLine("Error loading file.");
+            }
         }
 
 
