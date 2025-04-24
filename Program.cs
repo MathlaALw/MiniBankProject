@@ -456,7 +456,29 @@
         //5. Submit a Review
         static void SubmitReview()
         {
-            
+            Console.Clear();
+            Console.WriteLine("Submit a Review:");
+            bool isTrue = false;
+            string review = "";
+            while (!isTrue)
+            {
+                Console.WriteLine("Enter your review: ");
+                review = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(review))
+                {
+                    Console.WriteLine("Review cannot be empty.");
+                    isTrue = false;
+                }
+                else
+                {
+                    isTrue = true;
+                }
+            }
+
+            reviewsStack.Push(review);
+            Console.WriteLine("Your review has been submitted.");
+            Console.WriteLine("Press any key to return to the end user menu.");
+            Console.ReadKey();
         }
         //6. View Account Details
         static void viewAccountDetails()
