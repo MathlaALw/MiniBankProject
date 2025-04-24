@@ -73,7 +73,7 @@
                 }
 
             }
-
+        }
             // End User Menu
             static void EndUserMenu()
             {
@@ -188,7 +188,7 @@
                 }
 
             }
-        }
+        
             //------------------//
             // End User UseCases
             //------------------//
@@ -513,13 +513,16 @@
                 Console.WriteLine("initial balance : " + initialBalance);
 
 
-                // Console.WriteLine("Enter national id ");
-                Console.WriteLine("Do you want to approve this request? (y/n)");
-                string approve = Console.ReadLine();
-                if (approve.ToLower() == "y")
+
+
+
+                Console.WriteLine("Do you want to approve this request? (y/n/p)");
+                string requestStatus = Console.ReadLine();
+                if (requestStatus.ToLower() == "y")
                 {
-                    Console.WriteLine("Account approved.");
+                    // Console.WriteLine("Account approved.");
                     // Add the account to the system
+                    request = createAccountRequests.Dequeue();
                     int accountNumber = ++lastAccountNumber;
                     double initialBalanceDouble = double.Parse(initialBalance);
                     accountNumbers.Add(accountNumber);
@@ -529,21 +532,21 @@
                     requestStatuse.Add("Approved");
 
 
-                    //transactions.Add(new Queue<string>());
+
                     Console.WriteLine($"Account for {userName} has been created with account number {accountNumber}.");
                 }
-                else
+                else if (requestStatus.ToLower() == "n")
                 {
-                    Console.WriteLine("Account approved.");
+                    // Console.WriteLine("Account request not approved.");
                     // Add the account to the system
-                    int accountNumber = ++lastAccountNumber;
+                    request = createAccountRequests.Dequeue();
+
                     double initialBalanceDouble = double.Parse(initialBalance);
-                    accountNumbers.Add(accountNumber);
+                    int accountNumber = ++lastAccountNumber;
                     accountNames.Add(userName);
                     nationalIds.Add(nationalId);
                     balances.Add(initialBalanceDouble);
                     requestStatuse.Add("Not Approved");
-                    Console.WriteLine("Account request not approved");
                 }
 
             }
