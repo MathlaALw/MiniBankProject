@@ -553,7 +553,31 @@
         //2. view account requests
         static void ViewAccountRequests()
         {
-           
+            if (accountNumbers.Count == 0)
+            {
+                Console.WriteLine("No account requests available.");
+            }
+            else
+            {
+                Console.Clear();
+                Console.WriteLine("\n--- Approved Accounts ---");
+                for (int i = 0; i < accountNumbers.Count; i++)
+                {
+                    if (requestStatuse[i] == "Not Approved")
+                    {
+
+
+                        Console.WriteLine("--------------------------------------------------");
+                        Console.WriteLine("Account Number: " + accountNumbers[i]);
+                        Console.WriteLine("Account Name: " + accountNames[i]);
+                        Console.WriteLine("Account Balance: " + balances[i]);
+                        Console.WriteLine("Account Status: " + requestStatuse[i]);
+                        Console.WriteLine("--------------------------------------------------");
+                    }
+                }
+                Console.WriteLine("Press any key to return to the admin menu.");
+                Console.ReadKey();
+            }
         }
         //3. view all account requests
         static void ViewAllAccountRequests()
