@@ -358,7 +358,64 @@
         //1. Approve Account Request
         static void ApproveAccountRequest()
         {
-           
+            Console.Clear();
+            Console.WriteLine("Approve Account Request:");
+            if (createAccountRequests.Count == 0)
+            {
+                Console.WriteLine("No account requests available.");
+            }
+            else
+            {
+                string request = createAccountRequests.Dequeue();
+                //Console.WriteLine("Processing request: " + request);
+                string[] splitlineOfRequest = request.Split(":");
+                string userName = splitlineOfRequest[0];
+                string nationalId = splitlineOfRequest[1];
+                string initialBalance = splitlineOfRequest[2];
+
+
+                Console.WriteLine("view account Request");
+                Console.WriteLine("user name : " + userName);
+                Console.WriteLine("national Id : " + nationalId);
+                Console.WriteLine("initial balance : " + initialBalance);
+
+
+                // Console.WriteLine("Enter national id ");
+                Console.WriteLine("Do you want to approve this request? (y/n)");
+                string approve = Console.ReadLine();
+                if (approve.ToLower() == "y")
+                {
+                    Console.WriteLine("Account approved.");
+                    // Add the account to the system
+                    int accountNumber = ++lastAccountNumber;
+                    double initialBalanceDouble = double.Parse(initialBalance);
+                    accountNumbers.Add(accountNumber);
+                    accountNames.Add(userName);
+                    nationalIds.Add(nationalId);
+                    balances.Add(initialBalanceDouble);
+                    requestStatuse.Add("Approved");
+
+
+                    //transactions.Add(new Queue<string>());
+                    Console.WriteLine($"Account for {userName} has been created with account number {accountNumber}.");
+                }
+                else
+                {
+                    Console.WriteLine("Account approved.");
+                    // Add the account to the system
+                    int accountNumber = ++lastAccountNumber;
+                    double initialBalanceDouble = double.Parse(initialBalance);
+                    accountNumbers.Add(accountNumber);
+                    accountNames.Add(userName);
+                    nationalIds.Add(nationalId);
+                    balances.Add(initialBalanceDouble);
+                    requestStatuse.Add("Not Approved");
+                    Console.WriteLine("Account request not approved");
+                }
+
+            }
+            Console.WriteLine("Press any key to return to the admin menu.");
+            Console.ReadKey();
         }
         //2. view account requests
         static void ViewAccountRequests()
