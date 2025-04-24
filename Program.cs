@@ -6,6 +6,7 @@
         const double MinimumBalance = 100.0;
         const string AccountsFilePath = "accounts.txt";
         const string ReviewsFilePath = "reviews.txt";
+        const string RequestsFilePath = "requests.txt";
 
         // Global lists (parallel)
         static List<int> accountNumbers = new List<int>();
@@ -748,6 +749,55 @@
             }
         }
 
+        // save requests to file
+        static void SaveRequsts()
+        {
+            try
+            {
+
+                if (!File.Exists(RequestsFilePath))
+                {
+                    Console.WriteLine("No saved requests found.");
+
+                }
+                if (createAccountRequests.Count == 0)
+                {
+                    Console.WriteLine("No requests to save.");
+
+                }
+                else
+                {
+                    using (StreamWriter writer = new StreamWriter(RequestsFilePath))
+                    {
+                        //foreach (string request in createAccountRequests)
+                        //{
+                        //    writer.WriteLine(request);
+                        //}
+                        string request = createAccountRequests.Peek();
+                        for (int i = 0; i < createAccountRequests.Count; i++)
+                        {
+                            //string request = createAccountRequests.Peek();
+                            string[] splitlineOfRequest = request.Split(":");
+                            string accountNum = splitlineOfRequest[0];
+                            string userName = splitlineOfRequest[1];
+                            string initialBalance = splitlineOfRequest[2];
+                            string inialRequestStatus = splitlineOfRequest[3];
+
+
+                            string requestInOneLine = accountNum + ":" + userName + ":" + initialBalance + ":" + inialRequestStatus;
+                            writer.WriteLine(requestInOneLine);
+                        }
+                        request = createAccountRequests.Dequeue();
+                    }
+                    Console.WriteLine("Requests saved successfully.");
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Error saving file.");
+            }
+
+        }
 
 
 
