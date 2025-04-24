@@ -25,7 +25,7 @@
         // Main method
         static void Main(string[] args)
         {
-           
+
             LoadAccountsInformationFromFile();
             LoadReviews();
             bool runAgain = true;
@@ -189,14 +189,137 @@
 
             }
         }
-
-        //------------------//
-        // End User UseCases
-        //------------------//
-        // 1. Request Account Creation
+            //------------------//
+            // End User UseCases
+            //------------------//
+            // 1. Request Account Creation
         static void RequestAccountCreation()
         {
-           
+            Console.Clear();
+            Console.WriteLine("--Request Account Creation--");
+            Console.WriteLine("----------------------------");
+
+            bool isValidName = false;
+            bool isValidNationalId = false;
+            bool isValidinitialBalance = false;
+            string userName = "";
+            string nationalId = "";
+            string initialBalance = "";
+            try
+            {
+
+                // Get and validate name
+                while (!isValidName)
+                {
+
+
+                    Console.Write("Enter your name: ");
+                    userName = Console.ReadLine();
+
+                    if (string.IsNullOrWhiteSpace(userName))
+                    {
+                        Console.WriteLine("Name cannot be empty.");
+                        isValidName = false;
+
+                    }
+                    else if (int.TryParse(userName, out int result))
+                    {
+                        Console.WriteLine("Name cannot be a number.");
+                        isValidName = false;
+                    }
+                    else if (userName.Length < 3)
+                    {
+                        Console.WriteLine("Name must be at least 3 characters long.");
+                        isValidName = false;
+                    }
+
+
+                    else
+                    {
+
+                        isValidName = true;
+
+                    }
+
+
+                }
+
+                // Get and validate national ID
+                while (!isValidNationalId)
+                {
+                    Console.Write("Enter your National ID: ");
+                    nationalId = Console.ReadLine();
+
+
+                    if (string.IsNullOrEmpty(nationalId))
+                    {
+                        Console.WriteLine("National ID cannot be empty.");
+                        isValidNationalId = false;
+                    }
+                    else if (!int.TryParse(nationalId, out int result))
+                    {
+                        Console.WriteLine("Canot be string ");
+                        isValidNationalId = false;
+                    }
+                    else
+                    {
+
+                        isValidNationalId = true;
+
+                    }
+
+
+                }
+                // git initial balance
+
+                while (!isValidinitialBalance)
+                {
+                    Console.WriteLine("Entur your initial balance: ");
+                    initialBalance = Console.ReadLine();
+
+
+                    if (string.IsNullOrEmpty(initialBalance))
+                    {
+                        Console.WriteLine("Initial balance cannot be empty.");
+                        isValidinitialBalance = false;
+                    }
+                    else if (!double.TryParse(initialBalance, out double result))
+                    {
+                        Console.WriteLine("Initial balance must be a number.");
+                        isValidinitialBalance = false;
+                    }
+                    else if (double.Parse(initialBalance) < MinimumBalance)
+                    {
+                        Console.WriteLine($"Initial balance must be at least 100.0 OMR.");
+                        isValidinitialBalance = false;
+                    }
+
+                    else
+                    {
+                        isValidinitialBalance = true;
+
+                    }
+                }
+
+                string request = userName + ":" + nationalId + ":" + initialBalance;
+                createAccountRequests.Enqueue(request);
+                Console.WriteLine("Your account request has been submitted.");
+                Console.WriteLine($"Your account number is ({lastAccountNumber + 1}) Please wait for approval.");
+
+                Console.WriteLine("Press any key to return to the end user menu.");
+                Console.ReadKey();
+
+
+            }
+
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+                isValidName = false;
+                isValidNationalId = false;
+                isValidinitialBalance = false;
+            }
+
         }
 
         //2. Deposit Money
