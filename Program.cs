@@ -679,32 +679,39 @@
         {
             try
             {
+
                 if (!File.Exists(AccountsFilePath))
                 {
                     Console.WriteLine("No saved data found.");
                     return;
                 }
-                accountNames.Clear();
-                accountNumbers.Clear();
-                nationalIds.Clear();
-                balances.Clear();
-                requestStatuse.Clear();
 
-                using (StreamReader reader = new StreamReader(AccountsFilePath))
+
+                using (StreamReader reader = new StreamReader(AccountsFilePath, true))
                 {
+                    string content = reader.ReadToEnd();
+                    Console.WriteLine(content);
+                    // string[] lines = content.Split(":");
+
                     string line;
                     while ((line = reader.ReadLine()) != null)
                     {
-                        string[] parts = line.Split(':');
-                        int accountNum = int.Parse(parts[0]);
+
+
+                        string[] lines = File.ReadAllLines(AccountsFilePath);
+
+                        int accountNum = int.Parse(lines[0]);
                         accountNumbers.Add(accountNum);
-                        accountNames.Add(parts[1]);
-                        nationalIds.Add(parts[2]);
-                        balances.Add(double.Parse(parts[3]));
-                        requestStatuse.Add(parts[4]);
+                        accountNames.Add(lines[1]);
+                        nationalIds.Add(lines[2]);
+                        balances.Add(Convert.ToDouble(lines[3]));
+                        requestStatuse.Add(lines[4]);
 
                         if (accountNum > lastAccountNumber)
                             lastAccountNumber = accountNum;
+
+                        string valu = reader.ReadToEnd();
+                        Console.WriteLine(valu);
                     }
                 }
 
