@@ -430,7 +430,28 @@
         //4. Check Balance
         static void CheckBalance()
         {
-         
+            Console.Clear();
+            Console.WriteLine("-- Check Balance --");
+            try
+            {
+                Console.Write("Enter your account number: ");
+                int accountNumber = int.Parse(Console.ReadLine());
+                if (!accountNumbers.Contains(accountNumber))
+                {
+                    Console.WriteLine("Invalid account number.");
+                    return;
+                }
+                int index = accountNumbers.IndexOf(accountNumber);
+                Console.WriteLine("Account Name: " + accountNames[index]);
+                Console.WriteLine("Account Balance: " + balances[index]);
+                Console.WriteLine("Press any key to return to the end user menu.");
+                Console.ReadKey();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
         }
         //5. Submit a Review
         static void SubmitReview()
