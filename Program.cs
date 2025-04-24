@@ -602,7 +602,21 @@
         //3. View Reviews
         static void ViewReviews()
         {
-           
+            Console.Clear();
+            Console.WriteLine("Reviews:");
+            if (reviewsStack.Count == 0)
+            {
+                Console.WriteLine("No reviews available.");
+            }
+            else
+            {
+                foreach (string review in reviewsStack)
+                {
+                    Console.WriteLine(review);
+                }
+            }
+            Console.WriteLine("Press any key to return to the admin menu.");
+            Console.ReadKey();
         }
 
         //------------------//
