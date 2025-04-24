@@ -798,7 +798,43 @@
             }
 
         }
+        // load requests from file
+        static void LoadRequsts()
+        {
+            try
+            {
+                if (!File.Exists(RequestsFilePath))
+                {
+                    Console.WriteLine("No saved requests found.");
+                    return;
+                }
+                using (StreamReader reader = new StreamReader(RequestsFilePath))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        createAccountRequests.Enqueue(line);
+                        string[] splitlineOfRequest = line.Split(":");
+                        string userName = splitlineOfRequest[0];
+                        string nationalId = splitlineOfRequest[1];
+                        string initialBalance = splitlineOfRequest[2];
+                        string inialRequestStatus = splitlineOfRequest[3];
+                        //Console.WriteLine("view account Request");
+                        Console.WriteLine("user name : " + userName);
+                        Console.WriteLine("national Id : " + nationalId);
+                        Console.WriteLine("initial balance : " + initialBalance);
+                        Console.WriteLine("request status : " + inialRequestStatus);
 
+                    }
+                }
+                Console.WriteLine("Requests loaded successfully.");
+            }
+            catch
+            {
+                Console.WriteLine("Error loading file.");
+            }
+
+        }
 
 
 
