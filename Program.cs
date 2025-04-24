@@ -207,7 +207,7 @@
             string initialBalance = "";
             try
             {
-
+               // string[] lines = File.ReadAllLines(AccountsFilePath);
                 // Get and validate name
                 while (!isValidName)
                 {
@@ -556,31 +556,33 @@
         //2. view account requests
         static void ViewAccountRequests()
         {
-            if (accountNumbers.Count == 0)
+            Console.Clear();
+            Console.WriteLine("Request:");
+            if (createAccountRequests.Count == 0)
             {
-                Console.WriteLine("No account requests available.");
+                Console.WriteLine("No  requests available.");
             }
             else
             {
-                Console.Clear();
-                Console.WriteLine("\n--- Approved Accounts ---");
-                for (int i = 0; i < accountNumbers.Count; i++)
-                {
-                    if (requestStatuse[i] == "Not Approved")
-                    {
+                string request = createAccountRequests.Peek();
+
+                string[] splitlineOfRequest = request.Split(":");
+                string userName = splitlineOfRequest[0];
+                string nationalId = splitlineOfRequest[1];
+                string initialBalance = splitlineOfRequest[2];
+                string inialRequestStatus = splitlineOfRequest[3];
 
 
-                        Console.WriteLine("--------------------------------------------------");
-                        Console.WriteLine("Account Number: " + accountNumbers[i]);
-                        Console.WriteLine("Account Name: " + accountNames[i]);
-                        Console.WriteLine("Account Balance: " + balances[i]);
-                        Console.WriteLine("Account Status: " + requestStatuse[i]);
-                        Console.WriteLine("--------------------------------------------------");
-                    }
-                }
-                Console.WriteLine("Press any key to return to the admin menu.");
-                Console.ReadKey();
+
+                //Console.WriteLine("view account Request");
+                Console.WriteLine("user name : " + userName);
+                Console.WriteLine("national Id : " + nationalId);
+                Console.WriteLine("initial balance : " + initialBalance);
+                Console.WriteLine("request status : " + inialRequestStatus);
+
             }
+            Console.WriteLine("Press any key to return to the admin menu.");
+            Console.ReadKey();
         }
         //3. view all account requests
         static void ViewAllAccountRequests()
@@ -602,7 +604,7 @@
 
         }
 
-        //3. View Reviews
+        //3. View Reviews   
         static void ViewReviews()
         {
             Console.Clear();
