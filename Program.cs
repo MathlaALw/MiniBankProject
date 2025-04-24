@@ -325,7 +325,46 @@
         //2. Deposit Money
         static void DepositMoney()
         {
-            
+            int accountNumber = 0;
+            Console.Clear();
+            Console.WriteLine("-- Deposit Money --");
+            bool isTrue = false;
+            while (!isTrue)
+            {
+                Console.Write("Enter your account number: ");
+                accountNumber = int.Parse(Console.ReadLine());
+                if (!accountNumbers.Contains(accountNumber))
+                {
+                    Console.WriteLine("Invalid account number.");
+                    isTrue = false;
+
+                }
+                else
+                {
+
+                    Console.Write("Enter amount to deposit: ");
+                    double amount = double.Parse(Console.ReadLine());
+                    if (amount <= 0)
+                    {
+                        Console.WriteLine("Amount must be greater than zero.");
+                        isTrue = false;
+
+                    }
+                    else
+                    {
+                        isTrue = true;
+                        int index = accountNumbers.IndexOf(accountNumber);
+                        balances[index] += amount;
+
+                        Console.WriteLine("Deposit " + (amount) + " successful To account number " + (accountNumber) + " . Your new Balance is : " + balances[index]);
+
+                    }
+                }
+            }
+
+            Console.WriteLine("Press any key to return to the end user menu.");
+            Console.ReadKey();
+
 
         }
 
