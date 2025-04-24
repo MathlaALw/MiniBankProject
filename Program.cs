@@ -29,6 +29,7 @@
 
             LoadAccountsInformationFromFile();
             LoadReviews();
+            LoadRequsts();
             bool runAgain = true;
             while (runAgain) //loop until the user enter 3 to exit
             {
@@ -53,6 +54,7 @@
                         case "0":
                             SaveAccountsInformationToFile();
                             SaveReviews();
+                            SaveRequsts();
                             runAgain = false;
                             break;
 
