@@ -625,7 +625,22 @@
         // save accounts information to file
         static void SaveAccountsInformationToFile()
         {
-          
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(AccountsFilePath))
+                {
+                    for (int i = 0; i < accountNumbers.Count; i++)
+                    {
+                        string dataLine = $"{accountNumbers[i]},{accountNames[i]},{balances[i]}";
+                        writer.WriteLine(dataLine);
+                    }
+                }
+                Console.WriteLine("Accounts saved successfully.");
+            }
+            catch
+            {
+                Console.WriteLine("Error saving file.");
+            }
         }
         // save reviews to file
         static void SaveReviews()
