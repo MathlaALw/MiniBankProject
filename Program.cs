@@ -587,7 +587,9 @@
         //3. view all account requests
         static void ViewAllAccountRequests()
         {
-            Console.Clear();
+            try
+            {
+                Console.Clear();
             Console.WriteLine("\n--- All Accounts ---");
             for (int i = 0; i < accountNumbers.Count; i++)
             {
@@ -601,6 +603,11 @@
             }
             Console.WriteLine("Press any key to return to the admin menu.");
             Console.ReadKey();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
         }
 
