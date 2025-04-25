@@ -14,7 +14,8 @@
         static List<string> nationalIds = new List<string>();
         static List<double> balances = new List<double>();
         static List<string> requestStatuse = new List<string>();
-      
+        static List<string> pandingRequestList = new List<string>();
+
 
         // Queues and Stacks
         static Queue<string> createAccountRequests = new Queue<string>();
@@ -35,7 +36,7 @@
             {
                 try //handle the exception if the user enter invalid input
                 {
-                    Console.Clear();
+                    //Console.Clear();
                     Console.WriteLine("Welcome to Mini Bank System!");
                     Console.WriteLine("1. End User");
                     Console.WriteLine("2. Admin");
@@ -303,12 +304,18 @@
 
                     }
                 }
-
-                string request = userName + ":" + nationalId + ":" + initialBalance;
+                string initialRequestStatus = "pending";
+                string request = userName + ":" + nationalId + ":" + initialBalance + ":" + initialRequestStatus; ;
                 createAccountRequests.Enqueue(request);
-                Console.WriteLine("Your account request has been submitted.");
-                Console.WriteLine($"Your account number is ({lastAccountNumber + 1}) Please wait for approval.");
-
+                pandingRequestList.Add(userName);
+                pandingRequestList.Add(nationalId);
+                pandingRequestList.Add(initialBalance);
+                pandingRequestList.Add(initialRequestStatus);
+                //git the last account number from the file
+                int lastAcc = GitTheLastAccountNumberFromAccountFile();
+                Console.WriteLine("Your account request has been submitted. Please wait for approval.");
+                Console.WriteLine("Your account number is (" + (lastAcc + 1) + ") ." );
+               
                 Console.WriteLine("Press any key to return to the end user menu.");
                 Console.ReadKey();
 
@@ -322,7 +329,7 @@
                 isValidNationalId = false;
                 isValidinitialBalance = false;
             }
-
+            Console.ReadLine();
         }
 
         //2. Deposit Money
@@ -839,7 +846,50 @@
         }
 
 
+        static int GitTheLastAccountNumberFromAccountFile()
+        {
+            int lastAccNumber = 0;
+            string lastLine = null;
 
+            if (File.Exists(AccountsFilePath))
+            {
+                string[] lines = File.ReadAllLines(AccountsFilePath);
+
+                // Find last non-empty line
+                for (int i = lines.Length - 1; i >= 0; i--)
+                {
+                    if (!string.IsNullOrWhiteSpace(lines[i]))
+                    {
+                        lastLine = lines[i];
+                        break;
+                    }
+                }
+
+                if (lastLine != null)
+                {
+                    string[] parts = lastLine.Split(':');
+
+                    if (parts.Length > 0 && int.TryParse(parts[0], out lastAccNumber))
+                    {
+                        return lastAccNumber;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Could not parse account number.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("File is empty.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("File does not exist.");
+            }
+
+            return 0;
+        }
 
 
 
