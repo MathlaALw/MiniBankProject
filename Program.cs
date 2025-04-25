@@ -211,7 +211,7 @@
             string initialBalance = "";
             try
             {
-               // string[] lines = File.ReadAllLines(AccountsFilePath);
+              
                 // Get and validate name
                 while (!isValidName)
                 {
@@ -509,19 +509,20 @@
             }
             else
             {
-                string request = createAccountRequests.Dequeue();
-                //Console.WriteLine("Processing request: " + request);
+                string request = createAccountRequests.Peek();
+                
                 string[] splitlineOfRequest = request.Split(":");
                 string userName = splitlineOfRequest[0];
                 string nationalId = splitlineOfRequest[1];
                 string initialBalance = splitlineOfRequest[2];
+                string inialRequestStatus = splitlineOfRequest[3];
 
 
                 Console.WriteLine("view account Request");
                 Console.WriteLine("user name : " + userName);
                 Console.WriteLine("national Id : " + nationalId);
                 Console.WriteLine("initial balance : " + initialBalance);
-
+                Console.WriteLine("request status : " + inialRequestStatus);
 
 
 
@@ -530,16 +531,20 @@
                 string requestStatus = Console.ReadLine();
                 if (requestStatus.ToLower() == "y")
                 {
-                    // Console.WriteLine("Account approved.");
+                    
                     // Add the account to the system
                     request = createAccountRequests.Dequeue();
-                    int accountNumber = ++lastAccountNumber;
+                   
+                    int accountNumber = GitTheLastAccountNumberFromAccountFile() + 1;
                     double initialBalanceDouble = double.Parse(initialBalance);
                     accountNumbers.Add(accountNumber);
                     accountNames.Add(userName);
                     nationalIds.Add(nationalId);
                     balances.Add(initialBalanceDouble);
                     requestStatuse.Add("Approved");
+                    // Save the account to the file
+                    //SaveAccountsInformationToFile();
+
 
 
 
@@ -547,19 +552,22 @@
                 }
                 else if (requestStatus.ToLower() == "n")
                 {
-                    // Console.WriteLine("Account request not approved.");
+                    
                     // Add the account to the system
                     request = createAccountRequests.Dequeue();
-
+                    int accountNumber = GitTheLastAccountNumberFromAccountFile() + 1;
                     double initialBalanceDouble = double.Parse(initialBalance);
-                    int accountNumber = ++lastAccountNumber;
+                    accountNumbers.Add(accountNumber);
                     accountNames.Add(userName);
                     nationalIds.Add(nationalId);
                     balances.Add(initialBalanceDouble);
                     requestStatuse.Add("Not Approved");
+                    // Save the account to the file
+                    //SaveAccountsInformationToFile();
                 }
 
             }
+            SaveAccountsInformationToFile();
             Console.WriteLine("Press any key to return to the admin menu.");
             Console.ReadKey();
         }
@@ -649,11 +657,11 @@
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(AccountsFilePath))
+                using (StreamWriter writer = new StreamWriter(AccountsFilePath,true))
                 {
                     for (int i = 0; i < accountNumbers.Count; i++)
                     {
-                        string dataLine = $"{accountNumbers[i]},{accountNames[i]},{balances[i]}";
+                        string dataLine = accountNumbers[i] + ":" + accountNames[i] + ":" + nationalIds[i] + ":" + balances[i] + ":" + requestStatuse[i];
                         writer.WriteLine(dataLine);
                     }
                 }
