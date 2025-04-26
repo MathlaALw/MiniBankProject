@@ -338,6 +338,7 @@
         {
             Console.Clear();
             Console.WriteLine("-- Deposit Money --");
+
             bool isSuccess = false;
 
             while (!isSuccess)
@@ -353,16 +354,14 @@
                         return;
                     }
 
-                    // Read all accounts
                     List<string> lines = File.ReadAllLines(AccountsFilePath).ToList();
                     bool accountFound = false;
 
                     for (int i = 0; i < lines.Count; i++)
                     {
                         string[] parts = lines[i].Split(':');
-                        if (parts.Length >= 5) // the line of file have 5 parts
+                        if (parts.Length >= 5)
                         {
-                           
                             int fileAccountNumber = int.Parse(parts[0]);
                             string name = parts[1];
                             string nationalId = parts[2];
@@ -373,35 +372,42 @@
                             {
                                 accountFound = true;
 
-                                Console.Write("Enter amount to deposit: ");
-                                double amount = double.Parse(Console.ReadLine());
-
-                                if (amount <= 0)
+                                if (status == "Approved")
                                 {
-                                    Console.WriteLine("Amount must be greater than zero.");
+                                    Console.WriteLine("Account is approved.");
+                                    Console.Write("Enter amount to deposit: ");
+                                    double amount = double.Parse(Console.ReadLine());
+
+                                    if (amount <= 0)
+                                    {
+                                        Console.WriteLine("Amount must be greater than zero.");
+                                        break;
+                                    }
+
+                                    double newBalance = balance + amount;
+                                    parts[3] = newBalance.ToString(); // Update balance part
+
+                                    lines[i] = string.Join(":", parts);
+
+                                    File.WriteAllLines(AccountsFilePath, lines);
+
+                                    Console.WriteLine($"Deposited {amount} successfully!");
+                                    Console.WriteLine($"New Balance: {newBalance}");
+                                    isSuccess = true;
                                     break;
                                 }
-
-                                double newBalance = balance + amount;
-                                parts[3] = newBalance.ToString(); // Update balance part
-
-                                // add the new balance to the file 
-                                lines[i] = parts[0] + ":" + parts[1] + ":" + parts[2] + ":" + parts[3] + ":" + parts[4];
-
-                                // Write back updated file
-                                File.WriteAllLines(AccountsFilePath, lines);
-
-                                Console.WriteLine($"Deposited {amount} successfully!");
-                                Console.WriteLine($"New Balance: {newBalance}");
-                                isSuccess = true;
-                                break;
+                                else if (status == "Not Approved")
+                                {
+                                    Console.WriteLine("Account is not approved yet.");
+                                    break;
+                                }
                             }
                         }
                     }
 
                     if (!accountFound)
                     {
-                        Console.WriteLine("Account number not found. Please try again.");
+                        Console.WriteLine("Account is not found.");
                     }
                 }
                 catch (Exception ex)
@@ -417,30 +423,35 @@
         //3. Withdraw Money
         static void WithdrawMoney()
         {
-
-            
-
             Console.Clear();
             Console.WriteLine("-- Withdraw Money --");
+
             bool isSuccess = false;
+
             while (!isSuccess)
             {
                 try
                 {
                     Console.Write("Enter your account number: ");
-                    int enteredAccountNumber = int.Parse(Console.ReadLine());
+                    if (!int.TryParse(Console.ReadLine(), out int enteredAccountNumber))
+                    {
+                        Console.WriteLine("Invalid account number. Please enter numbers only.");
+                        continue;
+                    }
+
                     if (!File.Exists(AccountsFilePath))
                     {
                         Console.WriteLine("Accounts file not found.");
                         return;
                     }
-                    // Read all accounts
+
                     List<string> lines = File.ReadAllLines(AccountsFilePath).ToList();
                     bool accountFound = false;
+
                     for (int i = 0; i < lines.Count; i++)
                     {
                         string[] parts = lines[i].Split(':');
-                        if (parts.Length >= 5) // the line of file have 5 parts
+                        if (parts.Length >= 5)
                         {
                             int fileAccountNumber = int.Parse(parts[0]);
                             string name = parts[1];
@@ -451,25 +462,40 @@
                             if (fileAccountNumber == enteredAccountNumber)
                             {
                                 accountFound = true;
+
+                                if (status != "Approved")
+                                {
+                                    Console.WriteLine("Account is not approved yet. Cannot withdraw money.");
+                                    break;
+                                }
+
                                 Console.Write("Enter amount to withdraw: ");
-                                double amount = double.Parse(Console.ReadLine());
+                                if (!double.TryParse(Console.ReadLine(), out double amount))
+                                {
+                                    Console.WriteLine("Invalid amount. Please enter numbers only.");
+                                    break;
+                                }
+
                                 if (amount <= 0)
                                 {
                                     Console.WriteLine("Amount must be greater than zero.");
                                     break;
                                 }
+
                                 if (balance - amount < MinimumBalance)
                                 {
                                     Console.WriteLine($"Cannot withdraw {amount}. Minimum balance of {MinimumBalance} must be maintained.");
                                     break;
                                 }
-                                double newBalance = balance - amount;
-                                parts[3] = newBalance.ToString(); // Update balance part
 
-                                // add the new balance to the file 
+                                double newBalance = balance - amount;
+                                parts[3] = newBalance.ToString();
+
+                                // Manual way to rebuild the line
                                 lines[i] = parts[0] + ":" + parts[1] + ":" + parts[2] + ":" + parts[3] + ":" + parts[4];
-                                // Write back updated file
+
                                 File.WriteAllLines(AccountsFilePath, lines);
+
                                 Console.WriteLine($"Withdrew {amount} successfully!");
                                 Console.WriteLine($"New Balance: {newBalance}");
                                 isSuccess = true;
@@ -477,6 +503,7 @@
                             }
                         }
                     }
+
                     if (!accountFound)
                     {
                         Console.WriteLine("Account number not found. Please try again.");
@@ -487,37 +514,42 @@
                     Console.WriteLine("Error: " + ex.Message);
                 }
             }
+
             Console.WriteLine("Press any key to return to the End User Menu.");
             Console.ReadKey();
-
-
         }
         //4. Check Balance
         static void CheckBalance()
         {
-           
-
             Console.Clear();
             Console.WriteLine("-- Check Balance --");
+
             bool isSuccess = false;
+
             while (!isSuccess)
             {
                 try
                 {
                     Console.Write("Enter your account number: ");
-                    int enteredAccountNumber = int.Parse(Console.ReadLine());
+                    if (!int.TryParse(Console.ReadLine(), out int enteredAccountNumber))
+                    {
+                        Console.WriteLine("Invalid account number. Please enter numbers only.");
+                        continue;
+                    }
+
                     if (!File.Exists(AccountsFilePath))
                     {
                         Console.WriteLine("Accounts file not found.");
                         return;
                     }
-                    // Read all accounts
+
                     List<string> lines = File.ReadAllLines(AccountsFilePath).ToList();
                     bool accountFound = false;
+
                     for (int i = 0; i < lines.Count; i++)
                     {
                         string[] parts = lines[i].Split(':');
-                        if (parts.Length >= 5) // the line of file have 5 parts
+                        if (parts.Length >= 5)
                         {
                             int fileAccountNumber = int.Parse(parts[0]);
                             string name = parts[1];
@@ -528,14 +560,22 @@
                             if (fileAccountNumber == enteredAccountNumber)
                             {
                                 accountFound = true;
+
+                                if (status != "Approved")
+                                {
+                                    Console.WriteLine("Account is not approved yet. Cannot check balance.");
+                                    break;
+                                }
+
                                 Console.WriteLine($"Account Number: {fileAccountNumber}");
                                 Console.WriteLine($"Account Name: {name}");
-                                Console.WriteLine($"Balance: {balance}");
+                                Console.WriteLine($"Balance: {balance:F2}"); // Formatted to 2 decimal places
                                 isSuccess = true;
                                 break;
                             }
                         }
                     }
+
                     if (!accountFound)
                     {
                         Console.WriteLine("Account number not found. Please try again.");
@@ -546,6 +586,7 @@
                     Console.WriteLine("Error: " + ex.Message);
                 }
             }
+
             Console.WriteLine("Press any key to return to the End User Menu.");
             Console.ReadKey();
         }
@@ -1049,65 +1090,7 @@
             
         }
 
-        static int GitAccountNumberFromFile()
-        {
-            int accountNum = 0;
-            string lastLine = null;
-            if (File.Exists(AccountsFilePath))
-            {
-                string[] lines = File.ReadAllLines(AccountsFilePath);
-                // Find last non-empty line
-                for (int i = lines.Length - 1; i >= 0; i--)
-                {
-                    if (!string.IsNullOrWhiteSpace(lines[i]))
-                    {
-                        lastLine = lines[i];
-                        break;
-                    }
-                }
-                if (lastLine != null)
-                {
-                    string[] parts = lastLine.Split(':');
-                    if (parts.Length > 0 && int.TryParse(parts[0], out accountNum))
-                    {
-                        return accountNum;
-                    }
-                }
-                else
-                {
-                    // if File is empty
-                    return accountNum = 0;
-                }
-            }
-            else
-            {
-                Console.WriteLine("File does not exist.");
-            }
-            return 0;
-        }
-
-        //static int GitAccountNumberIndexFromFile()
-        //{
-
-        //    //git the account number from the file
-        //    int accountNumber = GitAccountNumberFromFile();
-        //    if (File.Exists(AccountsFilePath))
-        //    {
-        //        string[] lines = File.ReadAllLines(AccountsFilePath);
-        //        for (int i = 0; i < lines.Length; i++)
-        //        {
-        //            string[] parts = lines[i].Split(':');
-        //            if (parts.Length > 0 && int.TryParse(parts[0], out int accountNum))
-        //            {
-        //                if (accountNum == accountNumber)
-        //                {
-        //                    return accountNumber;
-        //                }
-        //            }
-        //        }
-        //    }
-
-
-        //}
+      
+       
     }
 }
