@@ -23,6 +23,7 @@
 
         // Account number generator
         static int lastAccountNumber;
+        static int firstRequestInFile;
 
         // Main method
         static void Main(string[] args)
@@ -32,7 +33,7 @@
             LoadReviews();
             LoadRequsts();
             bool runAgain = true;
-            while (runAgain) 
+            while (runAgain)
             {
                 try //handle the exception if the user enter invalid input
                 {
@@ -80,119 +81,119 @@
         }
         // End User Menu
         static void EndUserMenu()
+        {
+            bool runUser = true;
+            while (runUser) //loop until the user enter 3 to exit
             {
-                bool runUser = true;
-                while (runUser) //loop until the user enter 3 to exit
+                try
                 {
-                    try
+
+
+                    Console.Clear();
+                    Console.WriteLine("End User Menu:");
+                    Console.WriteLine("1. Request Account Creation");
+                    Console.WriteLine("2. Deposit Money");
+                    Console.WriteLine("3. Withdraw Money");
+                    Console.WriteLine("4. Check Balance");
+                    Console.WriteLine("5. submit a Review");
+                    Console.WriteLine("6. View account Details");
+                    Console.WriteLine("0. Exit to Main Menu");
+
+                    string userChoice = Console.ReadLine();
+                    switch (userChoice)
                     {
-
-
-                        Console.Clear();
-                        Console.WriteLine("End User Menu:");
-                        Console.WriteLine("1. Request Account Creation");
-                        Console.WriteLine("2. Deposit Money");
-                        Console.WriteLine("3. Withdraw Money");
-                        Console.WriteLine("4. Check Balance");
-                        Console.WriteLine("5. submit a Review");
-                        Console.WriteLine("6. View account Details");
-                        Console.WriteLine("0. Exit to Main Menu");
-
-                        string userChoice = Console.ReadLine();
-                        switch (userChoice)
-                        {
-                            case "1":
-                                RequestAccountCreation();
-                                break;
-                            case "2":
-                                DepositMoney();
-                                break;
-                            case "3":
-                                WithdrawMoney();
-                                break;
-                            case "4":
-                                CheckBalance();
-                                break;
-                            case "5":
-                                SubmitReview();
-                                break;
-                            case "6":
-                                viewAccountDetails();
-                                break;
-                            case "0":
-                                runUser = false;
-                                break;
-                            default:
-                                Console.WriteLine("Invalid choice, please try again.");
-                                break;
-                        }
-
-
+                        case "1":
+                            RequestAccountCreation();
+                            break;
+                        case "2":
+                            DepositMoney();
+                            break;
+                        case "3":
+                            WithdrawMoney();
+                            break;
+                        case "4":
+                            CheckBalance();
+                            break;
+                        case "5":
+                            SubmitReview();
+                            break;
+                        case "6":
+                            viewAccountDetails();
+                            break;
+                        case "0":
+                            runUser = false;
+                            break;
+                        default:
+                            Console.WriteLine("Invalid choice, please try again.");
+                            break;
                     }
-                    catch (Exception e)//show exception message if the user enter invalid input
-                    {
-                        Console.WriteLine(e.Message);
 
-
-                        Console.WriteLine("Invalid Choice! Try again.");
-                        Console.WriteLine("Press any key  "); //ask user to press any key to continue
-                        Console.ReadLine(); //read the user inputConsole.ReadLine();
-                    }
 
                 }
+                catch (Exception e)//show exception message if the user enter invalid input
+                {
+                    Console.WriteLine(e.Message);
+
+
+                    Console.WriteLine("Invalid Choice! Try again.");
+                    Console.WriteLine("Press any key  "); //ask user to press any key to continue
+                    Console.ReadLine(); //read the user inputConsole.ReadLine();
+                }
+
             }
+        }
         // Admin Menu//
         static void AdminMenu()
+        {
+            bool runAdmin = true;
+            while (runAdmin)
             {
-                bool runAdmin = true;
-                while (runAdmin)
+                try
                 {
-                    try
+                    Console.Clear();
+                    Console.WriteLine("Admin Menu:");
+                    Console.WriteLine("1. View Account Requests");
+                    Console.WriteLine("2. Approve Account Request");
+                    Console.WriteLine("3. View Reviews");
+                    Console.WriteLine("4. View All Account Requests");
+                    Console.WriteLine("0. Exit to Main Menu");
+                    string adminChoice = Console.ReadLine();
+                    switch (adminChoice)
                     {
-                        Console.Clear();
-                        Console.WriteLine("Admin Menu:");
-                        Console.WriteLine("1. View Account Requests");
-                        Console.WriteLine("2. Approve Account Request");
-                        Console.WriteLine("3. View Reviews");
-                        Console.WriteLine("4. View All Account Requests");
-                        Console.WriteLine("0. Exit to Main Menu");
-                        string adminChoice = Console.ReadLine();
-                        switch (adminChoice)
-                        {
-                            case "1":
-                                ViewAccountRequests();
-                                break;
-                            case "2":
-                                ApproveAccountRequest();
-                                break;
-                            case "3":
-                                ViewReviews();
-                                break;
-                            case "4":
-                                ViewAllAccountRequests();
-                                break;
-                            case "0":
-                                runAdmin = false;
-                                break;
-                            default:
-                                Console.WriteLine("Invalid choice, please try again.");
-                                break;
-                        }
-
+                        case "1":
+                            ViewAccountRequests();
+                            break;
+                        case "2":
+                            ApproveAccountRequest();
+                            break;
+                        case "3":
+                            ViewReviews();
+                            break;
+                        case "4":
+                            ViewAllAccountRequests();
+                            break;
+                        case "0":
+                            runAdmin = false;
+                            break;
+                        default:
+                            Console.WriteLine("Invalid choice, please try again.");
+                            break;
                     }
-                    catch (Exception e)//show exception message if the user enter invalid input
-                    {
-                        Console.WriteLine(e.Message);
 
-
-                        Console.WriteLine("Invalid Choice! Try again.");
-                        Console.WriteLine("Press any key  "); //ask user to press any key to continue
-                        Console.ReadLine(); //read the user inputConsole.ReadLine();
-                    }
                 }
+                catch (Exception e)//show exception message if the user enter invalid input
+                {
+                    Console.WriteLine(e.Message);
 
+
+                    Console.WriteLine("Invalid Choice! Try again.");
+                    Console.WriteLine("Press any key  "); //ask user to press any key to continue
+                    Console.ReadLine(); //read the user inputConsole.ReadLine();
+                }
             }
-        
+
+        }
+
         //------------------//
         // End User UseCases
         //------------------//
@@ -212,7 +213,7 @@
             string initialBalance = "";
             try
             {
-              
+
                 // Get and validate name
                 while (!isValidName)
                 {
@@ -319,8 +320,8 @@
                 //git the last account number from the file
                 int lastAcc = GitTheLastAccountNumberFromAccountFile();
                 Console.WriteLine("Your account request has been submitted. Please wait for approval.");
-                Console.WriteLine("Your account number is (" + (lastAcc + 1) + ") ." );
-               
+                Console.WriteLine("Your account number is (" + (lastAcc + 1) + ") .");
+
                 Console.WriteLine("Press any key to return to the end user menu.");
                 Console.ReadKey();
 
@@ -498,7 +499,7 @@
         //6. View Account Details
         static void viewAccountDetails()
         {
-            
+
         }
         //-------------------//
         // Admin UseCases // 
@@ -515,7 +516,7 @@
             else
             {
                 string request = createAccountRequests.Peek();
-                
+
                 string[] splitlineOfRequest = request.Split(":");
                 string userName = splitlineOfRequest[0];
                 string nationalId = splitlineOfRequest[1];
@@ -531,14 +532,14 @@
 
 
 
-                request = createAccountRequests.Dequeue();
+                request = createAccountRequests.Dequeue(); // remove from memory
                 Console.WriteLine("Do you want to approve this request? (y/n)");
                 string requestStatus = Console.ReadLine();
                 if (requestStatus.ToLower() == "y")
                 {
-                    
+
                     // Add the account to the system
-                   // request = createAccountRequests.Dequeue();
+
                     int accountNumber = GitTheLastAccountNumberFromAccountFile() + 1;
                     double initialBalanceDouble = double.Parse(initialBalance);
                     accountNumbers.Add(accountNumber);
@@ -549,20 +550,20 @@
                     Console.WriteLine("Account Request Approved");
 
                     //delete the request from the file
-                    //string removeRequestFromFile = userName + ":" + nationalId + ":" + initialBalance + ":" + inialRequestStatus;
+                    
+                    string requestToRemove = request; // remove from memory
+                    string first = GitTheFirstRequestInFile().ToString();
 
 
-
-                    //SaveAccountsInformationToFile();
 
 
 
 
                     Console.WriteLine($"Account for {userName} has been created with account number {accountNumber}.");
                 }
-                else 
+                else
                 {
-                    
+
                     // Add the account to the system
                     //request = createAccountRequests.Dequeue();
                     int accountNumber = GitTheLastAccountNumberFromAccountFile() + 1;
@@ -574,17 +575,18 @@
                     requestStatuse.Add("Not Approved");
                     Console.WriteLine("Account Request NotApproved");
 
-                    //remove from panding line from the file
-                    //Console.WriteLine($"Account for {userName} has been created .");
+                    //delete the request from the file
+                    string requestToRemove = request; // remove from memory
+                    string first = GitTheFirstRequestInFile().ToString();
 
-                    
-                    
-                   
+
+
+
+
                 }
-               //SaveAccountsInformationToFile();
-                //SaveRequsts();
+
             }
-           
+
             Console.WriteLine("Press any key to return to the admin menu.");
             Console.ReadKey();
         }
@@ -634,10 +636,10 @@
             try
             {
                 Console.Clear();
-            Console.WriteLine("\n--- All Accounts ---");
+                Console.WriteLine("\n--- All Accounts ---");
                 // vie all account requests from the file
                 Console.WriteLine("--------------------------------------------------");
-                
+
                 foreach (string request in createAccountRequests)
                 {
                     string[] splitlineOfRequest = request.Split(":");
@@ -651,18 +653,18 @@
                     Console.WriteLine("initialBalance: " + initialBalance);
                     Console.WriteLine("inialRequestStatus: " + inialRequestStatus);
                 }
-            //    for (int i = 0; i < accountNumbers.Count; i++)
-            //{
-            //    //Console.WriteLine($"{accountNumbers[i]} - {accountNames[i]} - Balance: {balances[i]} - ");
-            //    Console.WriteLine("--------------------------------------------------");
-            //    Console.WriteLine("Account Number: " + accountNumbers[i]);
-            //    Console.WriteLine("Account Name: " + accountNames[i]);
-            //    Console.WriteLine("Account Balance: " + balances[i]);
-            //    Console.WriteLine("Account Status: " + requestStatuse[i]);
-            //    Console.WriteLine("--------------------------------------------------");
-            //}
-            Console.WriteLine("Press any key to return to the admin menu.");
-            Console.ReadKey();
+                //    for (int i = 0; i < accountNumbers.Count; i++)
+                //{
+                //    //Console.WriteLine($"{accountNumbers[i]} - {accountNames[i]} - Balance: {balances[i]} - ");
+                //    Console.WriteLine("--------------------------------------------------");
+                //    Console.WriteLine("Account Number: " + accountNumbers[i]);
+                //    Console.WriteLine("Account Name: " + accountNames[i]);
+                //    Console.WriteLine("Account Balance: " + balances[i]);
+                //    Console.WriteLine("Account Status: " + requestStatuse[i]);
+                //    Console.WriteLine("--------------------------------------------------");
+                //}
+                Console.WriteLine("Press any key to return to the admin menu.");
+                Console.ReadKey();
             }
             catch (Exception e)
             {
@@ -699,7 +701,7 @@
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(AccountsFilePath,true))
+                using (StreamWriter writer = new StreamWriter(AccountsFilePath, true))
                 {
                     for (int i = 0; i < accountNumbers.Count; i++)
                     {
@@ -814,21 +816,43 @@
             try
             {
 
-              if(!File.Exists(RequestsFilePath))
+
+                if (!File.Exists(RequestsFilePath))
                 {
                     Console.WriteLine("No saved requests found.");
-                  
-                }
-                using (StreamWriter writer = new StreamWriter(RequestsFilePath, true))
-                {
-                    foreach (string request in createAccountRequests)
-                    {
-                        writer.WriteLine(request);
 
-                        
-                    }
                 }
-                Console.WriteLine("Requests saved successfully.");
+                if (createAccountRequests.Count == 0)
+                {
+                    Console.WriteLine("No requests to save.");
+
+                }
+                else
+                {
+                    using (StreamWriter writer = new StreamWriter(RequestsFilePath))
+                    {
+                        //foreach (string request in createAccountRequests)
+                        //{
+                        //    writer.WriteLine(request);
+                        //}
+                        //string request = createAccountRequests.Peek();
+                        for (int i = 0; i < createAccountRequests.Count; i++)
+                        {
+                            string request = createAccountRequests.Dequeue();
+                            string[] splitlineOfRequest = request.Split(":");
+                            string accountNum = splitlineOfRequest[0];
+                            string userName = splitlineOfRequest[1];
+                            string initialBalance = splitlineOfRequest[2];
+                            string inialRequestStatus = splitlineOfRequest[3];
+
+
+                            string requestInOneLine = accountNum + ":" + userName + ":" + initialBalance + ":" + inialRequestStatus;
+                            writer.WriteLine(requestInOneLine);
+                        }
+                        //request = createAccountRequests.Dequeue();
+                    }
+                    Console.WriteLine("Requests saved successfully.");
+                }
             }
             catch
             {
@@ -841,7 +865,7 @@
         {
             try
             {
-               if(!File.Exists(RequestsFilePath))
+                if (!File.Exists(RequestsFilePath))
                 {
                     Console.WriteLine("No saved requests found.");
                     return;
@@ -892,7 +916,7 @@
                     {
                         return lastAccNumber;
                     }
-                    
+
                 }
                 else
                 {
@@ -909,6 +933,40 @@
         }
 
 
+        static string GitTheFirstRequestInFile()
+        {
+            
+                if (File.Exists(RequestsFilePath))
+                {
+                List<string> lines = File.ReadAllLines(RequestsFilePath).ToList();
 
+                if (lines.Count > 0)
+                    {
+                        string firstRequest = lines[0]; // get the first line
+
+                        lines.RemoveAt(0); // remove the first line
+
+                        File.WriteAllLines(RequestsFilePath, lines); // overwrite the file without first line
+
+                        return firstRequest;
+                    }
+                    else
+                    {
+                        return "File is empty"; // file is empty
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Requests file does not exist.");
+                    return "";
+
+
+                }
+
+               
+
+
+            
+        }
     }
 }
