@@ -495,28 +495,59 @@
         //4. Check Balance
         static void CheckBalance()
         {
+           
+
             Console.Clear();
             Console.WriteLine("-- Check Balance --");
-            try
+            bool isSuccess = false;
+            while (!isSuccess)
             {
-                Console.Write("Enter your account number: ");
-                int accountNumber = int.Parse(Console.ReadLine());
-                if (!accountNumbers.Contains(accountNumber))
+                try
                 {
-                    Console.WriteLine("Invalid account number.");
-                    return;
-                }
-                int index = accountNumbers.IndexOf(accountNumber);
-                Console.WriteLine("Account Name: " + accountNames[index]);
-                Console.WriteLine("Account Balance: " + balances[index]);
-                Console.WriteLine("Press any key to return to the end user menu.");
-                Console.ReadKey();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
+                    Console.Write("Enter your account number: ");
+                    int enteredAccountNumber = int.Parse(Console.ReadLine());
+                    if (!File.Exists(AccountsFilePath))
+                    {
+                        Console.WriteLine("Accounts file not found.");
+                        return;
+                    }
+                    // Read all accounts
+                    List<string> lines = File.ReadAllLines(AccountsFilePath).ToList();
+                    bool accountFound = false;
+                    for (int i = 0; i < lines.Count; i++)
+                    {
+                        string[] parts = lines[i].Split(':');
+                        if (parts.Length >= 5) // the line of file have 5 parts
+                        {
+                            int fileAccountNumber = int.Parse(parts[0]);
+                            string name = parts[1];
+                            string nationalId = parts[2];
+                            double balance = double.Parse(parts[3]);
+                            string status = parts[4];
 
+                            if (fileAccountNumber == enteredAccountNumber)
+                            {
+                                accountFound = true;
+                                Console.WriteLine($"Account Number: {fileAccountNumber}");
+                                Console.WriteLine($"Account Name: {name}");
+                                Console.WriteLine($"Balance: {balance}");
+                                isSuccess = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!accountFound)
+                    {
+                        Console.WriteLine("Account number not found. Please try again.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+            }
+            Console.WriteLine("Press any key to return to the End User Menu.");
+            Console.ReadKey();
         }
         //5. Submit a Review
         static void SubmitReview()
