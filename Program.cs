@@ -32,7 +32,7 @@
             LoadReviews();
             LoadRequsts();
             bool runAgain = true;
-            while (runAgain) //loop until the user enter 3 to exit
+            while (runAgain) 
             {
                 try //handle the exception if the user enter invalid input
                 {
@@ -78,8 +78,8 @@
 
             }
         }
-            // End User Menu
-            static void EndUserMenu()
+        // End User Menu
+        static void EndUserMenu()
             {
                 bool runUser = true;
                 while (runUser) //loop until the user enter 3 to exit
@@ -141,8 +141,8 @@
 
                 }
             }
-            // Admin Menu//
-            static void AdminMenu()
+        // Admin Menu//
+        static void AdminMenu()
             {
                 bool runAdmin = true;
                 while (runAdmin)
@@ -193,10 +193,11 @@
 
             }
         
-            //------------------//
-            // End User UseCases
-            //------------------//
-            // 1. Request Account Creation
+        //------------------//
+        // End User UseCases
+        //------------------//
+        // 1. Request Account Creation
+
         static void RequestAccountCreation()
         {
             Console.Clear();
@@ -307,10 +308,14 @@
                 string initialRequestStatus = "pending";
                 string request = userName + ":" + nationalId + ":" + initialBalance + ":" + initialRequestStatus; ;
                 createAccountRequests.Enqueue(request);
-                pandingRequestList.Add(userName);
-                pandingRequestList.Add(nationalId);
-                pandingRequestList.Add(initialBalance);
-                pandingRequestList.Add(initialRequestStatus);
+
+                // add the request to the panding list
+
+                //pandingRequestList.Add(userName);
+                //pandingRequestList.Add(nationalId);
+                //pandingRequestList.Add(initialBalance);
+                //pandingRequestList.Add(initialRequestStatus);
+
                 //git the last account number from the file
                 int lastAcc = GitTheLastAccountNumberFromAccountFile();
                 Console.WriteLine("Your account request has been submitted. Please wait for approval.");
@@ -526,15 +531,14 @@
 
 
 
-
-                Console.WriteLine("Do you want to approve this request? (y/n/p)");
+                request = createAccountRequests.Dequeue();
+                Console.WriteLine("Do you want to approve this request? (y/n)");
                 string requestStatus = Console.ReadLine();
                 if (requestStatus.ToLower() == "y")
                 {
                     
                     // Add the account to the system
-                    request = createAccountRequests.Dequeue();
-                   
+                   // request = createAccountRequests.Dequeue();
                     int accountNumber = GitTheLastAccountNumberFromAccountFile() + 1;
                     double initialBalanceDouble = double.Parse(initialBalance);
                     accountNumbers.Add(accountNumber);
@@ -542,7 +546,13 @@
                     nationalIds.Add(nationalId);
                     balances.Add(initialBalanceDouble);
                     requestStatuse.Add("Approved");
-                    // Save the account to the file
+                    Console.WriteLine("Account Request Approved");
+
+                    //delete the request from the file
+                    //string removeRequestFromFile = userName + ":" + nationalId + ":" + initialBalance + ":" + inialRequestStatus;
+
+
+
                     //SaveAccountsInformationToFile();
 
 
@@ -550,57 +560,73 @@
 
                     Console.WriteLine($"Account for {userName} has been created with account number {accountNumber}.");
                 }
-                else if (requestStatus.ToLower() == "n")
+                else 
                 {
                     
                     // Add the account to the system
-                    request = createAccountRequests.Dequeue();
+                    //request = createAccountRequests.Dequeue();
                     int accountNumber = GitTheLastAccountNumberFromAccountFile() + 1;
                     double initialBalanceDouble = double.Parse(initialBalance);
-                    accountNumbers.Add(accountNumber);
+                    //accountNumbers.Add(accountNumber);
                     accountNames.Add(userName);
                     nationalIds.Add(nationalId);
                     balances.Add(initialBalanceDouble);
                     requestStatuse.Add("Not Approved");
-                    // Save the account to the file
-                    //SaveAccountsInformationToFile();
-                }
+                    Console.WriteLine("Account Request NotApproved");
 
+                    //remove from panding line from the file
+                    //Console.WriteLine($"Account for {userName} has been created .");
+
+                    
+                    
+                   
+                }
+               //SaveAccountsInformationToFile();
+                //SaveRequsts();
             }
-            SaveAccountsInformationToFile();
+           
             Console.WriteLine("Press any key to return to the admin menu.");
             Console.ReadKey();
         }
         //2. view account requests
         static void ViewAccountRequests()
         {
-            Console.Clear();
-            Console.WriteLine("Request:");
-            if (createAccountRequests.Count == 0)
+            try
             {
-                Console.WriteLine("No  requests available.");
+                Console.Clear();
+                Console.WriteLine("Request:");
+                if (createAccountRequests.Count == 0)
+                {
+                    Console.WriteLine("No requests available.");
+
+                }
+                else
+                {
+                    string request = createAccountRequests.Peek();
+
+                    string[] splitlineOfRequest = request.Split(":");
+                    string userName = splitlineOfRequest[0];
+                    string nationalId = splitlineOfRequest[1];
+                    string initialBalance = splitlineOfRequest[2];
+                    string inialRequestStatus = splitlineOfRequest[3];
+
+
+
+                    //Console.WriteLine("view account Request");
+                    Console.WriteLine("user name : " + userName);
+                    Console.WriteLine("national Id : " + nationalId);
+                    Console.WriteLine("initial balance : " + initialBalance);
+                    Console.WriteLine("request status : " + inialRequestStatus);
+
+                }
+
+                Console.WriteLine("Press any key to return to the admin menu.");
+                Console.ReadKey();
             }
-            else
+            catch (Exception e)
             {
-                string request = createAccountRequests.Peek();
-
-                string[] splitlineOfRequest = request.Split(":");
-                string userName = splitlineOfRequest[0];
-                string nationalId = splitlineOfRequest[1];
-                string initialBalance = splitlineOfRequest[2];
-                string inialRequestStatus = splitlineOfRequest[3];
-
-
-
-                //Console.WriteLine("view account Request");
-                Console.WriteLine("user name : " + userName);
-                Console.WriteLine("national Id : " + nationalId);
-                Console.WriteLine("initial balance : " + initialBalance);
-                Console.WriteLine("request status : " + inialRequestStatus);
-
+                Console.WriteLine(e.Message);
             }
-            Console.WriteLine("Press any key to return to the admin menu.");
-            Console.ReadKey();
         }
         //3. view all account requests
         static void ViewAllAccountRequests()
@@ -609,16 +635,32 @@
             {
                 Console.Clear();
             Console.WriteLine("\n--- All Accounts ---");
-            for (int i = 0; i < accountNumbers.Count; i++)
-            {
-                //Console.WriteLine($"{accountNumbers[i]} - {accountNames[i]} - Balance: {balances[i]} - ");
+                // vie all account requests from the file
                 Console.WriteLine("--------------------------------------------------");
-                Console.WriteLine("Account Number: " + accountNumbers[i]);
-                Console.WriteLine("Account Name: " + accountNames[i]);
-                Console.WriteLine("Account Balance: " + balances[i]);
-                Console.WriteLine("Account Status: " + requestStatuse[i]);
-                Console.WriteLine("--------------------------------------------------");
-            }
+                
+                foreach (string request in createAccountRequests)
+                {
+                    string[] splitlineOfRequest = request.Split(":");
+                    string accountNum = splitlineOfRequest[0];
+                    string userName = splitlineOfRequest[1];
+                    string initialBalance = splitlineOfRequest[2];
+                    string inialRequestStatus = splitlineOfRequest[3];
+                    Console.WriteLine("--------------------------------------------------");
+                    Console.WriteLine("accountNum: " + accountNum);
+                    Console.WriteLine("userName: " + userName);
+                    Console.WriteLine("initialBalance: " + initialBalance);
+                    Console.WriteLine("inialRequestStatus: " + inialRequestStatus);
+                }
+            //    for (int i = 0; i < accountNumbers.Count; i++)
+            //{
+            //    //Console.WriteLine($"{accountNumbers[i]} - {accountNames[i]} - Balance: {balances[i]} - ");
+            //    Console.WriteLine("--------------------------------------------------");
+            //    Console.WriteLine("Account Number: " + accountNumbers[i]);
+            //    Console.WriteLine("Account Name: " + accountNames[i]);
+            //    Console.WriteLine("Account Balance: " + balances[i]);
+            //    Console.WriteLine("Account Status: " + requestStatuse[i]);
+            //    Console.WriteLine("--------------------------------------------------");
+            //}
             Console.WriteLine("Press any key to return to the admin menu.");
             Console.ReadKey();
             }
@@ -677,7 +719,7 @@
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(ReviewsFilePath))
+                using (StreamWriter writer = new StreamWriter(ReviewsFilePath, true))
                 {
                     foreach (string review in reviewsStack)
                     {
@@ -772,46 +814,25 @@
             try
             {
 
-                if (!File.Exists(RequestsFilePath))
+              if(!File.Exists(RequestsFilePath))
                 {
                     Console.WriteLine("No saved requests found.");
-
+                  
                 }
-                if (createAccountRequests.Count == 0)
+                using (StreamWriter writer = new StreamWriter(RequestsFilePath, true))
                 {
-                    Console.WriteLine("No requests to save.");
-
-                }
-                else
-                {
-                    using (StreamWriter writer = new StreamWriter(RequestsFilePath))
+                    foreach (string request in createAccountRequests)
                     {
-                        //foreach (string request in createAccountRequests)
-                        //{
-                        //    writer.WriteLine(request);
-                        //}
-                        string request = createAccountRequests.Peek();
-                        for (int i = 0; i < createAccountRequests.Count; i++)
-                        {
-                            //string request = createAccountRequests.Peek();
-                            string[] splitlineOfRequest = request.Split(":");
-                            string accountNum = splitlineOfRequest[0];
-                            string userName = splitlineOfRequest[1];
-                            string initialBalance = splitlineOfRequest[2];
-                            string inialRequestStatus = splitlineOfRequest[3];
+                        writer.WriteLine(request);
 
-
-                            string requestInOneLine = accountNum + ":" + userName + ":" + initialBalance + ":" + inialRequestStatus;
-                            writer.WriteLine(requestInOneLine);
-                        }
-                        request = createAccountRequests.Dequeue();
+                        
                     }
-                    Console.WriteLine("Requests saved successfully.");
                 }
+                Console.WriteLine("Requests saved successfully.");
             }
             catch
             {
-                Console.WriteLine("Error saving file.");
+                Console.WriteLine("Error saving request file.");
             }
 
         }
@@ -820,7 +841,7 @@
         {
             try
             {
-                if (!File.Exists(RequestsFilePath))
+               if(!File.Exists(RequestsFilePath))
                 {
                     Console.WriteLine("No saved requests found.");
                     return;
@@ -831,16 +852,6 @@
                     while ((line = reader.ReadLine()) != null)
                     {
                         createAccountRequests.Enqueue(line);
-                        string[] splitlineOfRequest = line.Split(":");
-                        string userName = splitlineOfRequest[0];
-                        string nationalId = splitlineOfRequest[1];
-                        string initialBalance = splitlineOfRequest[2];
-                        string inialRequestStatus = splitlineOfRequest[3];
-                        //Console.WriteLine("view account Request");
-                        Console.WriteLine("user name : " + userName);
-                        Console.WriteLine("national Id : " + nationalId);
-                        Console.WriteLine("initial balance : " + initialBalance);
-                        Console.WriteLine("request status : " + inialRequestStatus);
 
                     }
                 }
@@ -848,7 +859,7 @@
             }
             catch
             {
-                Console.WriteLine("Error loading file.");
+                Console.WriteLine("Error loading Request file.");
             }
 
         }
@@ -881,14 +892,12 @@
                     {
                         return lastAccNumber;
                     }
-                    else
-                    {
-                        Console.WriteLine("Could not parse account number.");
-                    }
+                    
                 }
                 else
                 {
-                    Console.WriteLine("File is empty.");
+                    // if File is empty
+                    return lastAccNumber = 0;
                 }
             }
             else
