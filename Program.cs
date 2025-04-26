@@ -367,7 +367,7 @@
                             string name = parts[1];
                             string nationalId = parts[2];
                             double balance = double.Parse(parts[3]);
-                            string role = parts[4];
+                            string status = parts[4];
 
                             if (fileAccountNumber == enteredAccountNumber)
                             {
@@ -418,58 +418,77 @@
         static void WithdrawMoney()
         {
 
+            
+
             Console.Clear();
             Console.WriteLine("-- Withdraw Money --");
-            bool isTrue = false;
-            while (!isTrue)
+            bool isSuccess = false;
+            while (!isSuccess)
             {
                 try
                 {
                     Console.Write("Enter your account number: ");
-                    int accountNumber = int.Parse(Console.ReadLine());
-                    if (!accountNumbers.Contains(accountNumber))
+                    int enteredAccountNumber = int.Parse(Console.ReadLine());
+                    if (!File.Exists(AccountsFilePath))
                     {
-                        Console.WriteLine("Invalid account number.");
-                        isTrue = false;
+                        Console.WriteLine("Accounts file not found.");
+                        return;
                     }
-                    else
+                    // Read all accounts
+                    List<string> lines = File.ReadAllLines(AccountsFilePath).ToList();
+                    bool accountFound = false;
+                    for (int i = 0; i < lines.Count; i++)
                     {
-                        Console.Write("Enter amount to withdraw: ");
-                        double amount = double.Parse(Console.ReadLine());
-                        if (amount <= 0)
+                        string[] parts = lines[i].Split(':');
+                        if (parts.Length >= 5) // the line of file have 5 parts
                         {
-                            Console.WriteLine("Amount must be greater than zero.");
-                            isTrue = false;
-                        }
-                        else
-                        {
-                            int index = accountNumbers.IndexOf(accountNumber);
-                            if (balances[index] - amount < MinimumBalance)
-                            {
-                                Console.WriteLine("Cannot withdraw " + amount + " Minimum balance of " + MinimumBalance + " must be maintained.");
-                                isTrue = false;
-                            }
-                            else
-                            {
-                                isTrue = true;
-                                balances[index] -= amount;
-                                Console.WriteLine("Withdrew " + amount + " from account number " + accountNumber + " New balance: " + balances[index]);
-                                Console.WriteLine("Press any key to return to the end user menu.");
-                                Console.ReadKey();
+                            int fileAccountNumber = int.Parse(parts[0]);
+                            string name = parts[1];
+                            string nationalId = parts[2];
+                            double balance = double.Parse(parts[3]);
+                            string status = parts[4];
 
+                            if (fileAccountNumber == enteredAccountNumber)
+                            {
+                                accountFound = true;
+                                Console.Write("Enter amount to withdraw: ");
+                                double amount = double.Parse(Console.ReadLine());
+                                if (amount <= 0)
+                                {
+                                    Console.WriteLine("Amount must be greater than zero.");
+                                    break;
+                                }
+                                if (balance - amount < MinimumBalance)
+                                {
+                                    Console.WriteLine($"Cannot withdraw {amount}. Minimum balance of {MinimumBalance} must be maintained.");
+                                    break;
+                                }
+                                double newBalance = balance - amount;
+                                parts[3] = newBalance.ToString(); // Update balance part
+
+                                // add the new balance to the file 
+                                lines[i] = parts[0] + ":" + parts[1] + ":" + parts[2] + ":" + parts[3] + ":" + parts[4];
+                                // Write back updated file
+                                File.WriteAllLines(AccountsFilePath, lines);
+                                Console.WriteLine($"Withdrew {amount} successfully!");
+                                Console.WriteLine($"New Balance: {newBalance}");
+                                isSuccess = true;
+                                break;
                             }
                         }
                     }
-
-
+                    if (!accountFound)
+                    {
+                        Console.WriteLine("Account number not found. Please try again.");
+                    }
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Console.WriteLine(e.Message);
+                    Console.WriteLine("Error: " + ex.Message);
                 }
-
             }
-
+            Console.WriteLine("Press any key to return to the End User Menu.");
+            Console.ReadKey();
 
 
         }
