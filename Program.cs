@@ -552,7 +552,7 @@
                     //delete the request from the file
                     
                     string requestToRemove = request; // remove from memory
-                    string first = GitTheFirstRequestInFile().ToString();
+                    string first = GitTheFirstRequestInFileAndDelete().ToString(); // remove from file
 
 
 
@@ -577,7 +577,7 @@
 
                     //delete the request from the file
                     string requestToRemove = request; // remove from memory
-                    string first = GitTheFirstRequestInFile().ToString();
+                    string first = GitTheFirstRequestInFileAndDelete().ToString(); // remove from file
 
 
 
@@ -932,16 +932,16 @@
             return 0;
         }
 
-
-        static string GitTheFirstRequestInFile()
+        // get the first request in the file and remove it from the file
+        static string GitTheFirstRequestInFileAndDelete()
         {
             
                 if (File.Exists(RequestsFilePath))
                 {
-                List<string> lines = File.ReadAllLines(RequestsFilePath).ToList();
+                List<string> lines = File.ReadAllLines(RequestsFilePath).ToList(); //read all lines from file then store in list .
 
-                if (lines.Count > 0)
-                    {
+                if (lines.Count > 0) // check if the file is not empty
+                {
                         string firstRequest = lines[0]; // get the first line
 
                         lines.RemoveAt(0); // remove the first line
@@ -957,11 +957,11 @@
                 }
                 else
                 {
-                    Console.WriteLine("Requests file does not exist.");
-                    return "";
+                   
+                    return "Requests file does not exist."; // file does not exist
 
 
-                }
+            }
 
                
 
