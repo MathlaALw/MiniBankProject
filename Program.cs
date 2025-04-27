@@ -14,7 +14,7 @@
         static List<string> nationalIds = new List<string>();
         static List<double> balances = new List<double>();
         static List<string> requestStatuse = new List<string>();
-        //static List<string> pandingRequestList = new List<string>();
+        static List<string> userTypes = new List<string>();
 
 
         // Queues and Stacks
@@ -23,7 +23,7 @@
 
         // Account number generator
         static int lastAccountNumber;
-        // static int firstRequestInFile;
+        
 
         // Main method
         static void Main(string[] args)
@@ -39,8 +39,8 @@
                 {
                     //Console.Clear();
                     Console.WriteLine("Welcome to Mini Bank System!");
-                    Console.WriteLine("1. End User");
-                    Console.WriteLine("2. Admin");
+                    Console.WriteLine("1. create New account");
+                    Console.WriteLine("2. Login");
                     Console.WriteLine("0. Exit");
 
                     Console.WriteLine("Select Option ");
@@ -48,10 +48,10 @@
                     switch (choice)
                     {
                         case "1":
-                            EndUserMenu();
+                            CreateNewAccount();
                             break;
                         case "2":
-                            AdminMenu();
+                            Login();
                             break;
                         case "0":
                             SaveAccountsInformationToFile();
@@ -193,7 +193,245 @@
             }
 
         }
+        static void CreateNewAccount()
+        {
+            Console.Clear();
+            Console.WriteLine("-- Create New Account --");
+            Console.WriteLine("-------------------------");
 
+            bool isValidName = false;
+            bool isValidNationalId = false;
+            bool isValidInitialBalance = false;
+            bool isValidUserType = false;
+            string userName = "";
+            string nationalId = "";
+            double initialBalance = 0;
+            string userType = "";
+
+            try
+            {
+
+                // Validate Name
+                while (!isValidName)
+                {
+                    Console.Write("Enter your name: ");
+                    userName = Console.ReadLine();
+
+                    if (string.IsNullOrWhiteSpace(userName))
+                        Console.WriteLine("Name cannot be empty.");
+                    else if (userName.Length < 3)
+                        Console.WriteLine("Name must be at least 3 characters long.");
+                    else if (int.TryParse(userName, out int result))
+                        Console.WriteLine("Name cannot be a number.");
+                    else
+                        isValidName = true;
+                }
+
+                // Validate National ID
+                while (!isValidNationalId)
+                {
+                    Console.Write("Enter your National ID: ");
+                    nationalId = Console.ReadLine();
+
+
+                    if (string.IsNullOrWhiteSpace(nationalId))
+                        Console.WriteLine("National ID cannot be empty.");
+                    else if (!double.TryParse(nationalId, out double result))
+                        Console.WriteLine("National ID must be numbers only.");
+                    else
+                        isValidNationalId = true;
+
+                    if (IsNationalIdExist(nationalId))
+                    {
+                        Console.WriteLine("This National ID already exists in the system. Cannot create duplicate account.");
+                        Console.ReadKey();
+                        return;
+                    }
+
+                }
+
+
+                while (!isValidUserType)
+                {
+                    Console.Write("Enter your user type (user/admin): ");
+                    userType = Console.ReadLine();
+
+                    if (userType != "user" && userType != "admin")
+                        Console.WriteLine("User type must be either 'user' or 'admin'.");
+                    else
+                    {
+                        isValidUserType = true;
+                        if (userType == "admin")
+                        {
+                            lastAccountNumber = GetTheLastAccountNumberFromAccountFile();
+                            string status = "panding"; // Default status
+
+                            // Save the admin information to the file
+                            //accountNumbers.Add(lastAccountNumber + 1);
+                            accountNames.Add(userName);
+                            nationalIds.Add(nationalId);
+                            balances.Add(initialBalance);
+                            requestStatuse.Add(status);
+                            userTypes.Add(userType);
+                            //requestStatuse.Add("Approved");
+                            //userTypes.Add(userType);
+                            string adminAccountLine = userName + ":" + nationalId + ":" + "0.0" + ":" + status + ":" + "admin";
+                            createAccountRequests.Enqueue(adminAccountLine);
+                            Console.WriteLine("Admin account created successfully!");
+                            Console.WriteLine($"Your new account number is: {lastAccountNumber + 1}");
+                            Console.WriteLine("Press any key to return to the menu...");
+                            Console.ReadKey();
+
+                        }
+                        if (userType == "user")
+                        {
+                            while (!isValidName)
+                            {
+                                Console.Write("Enter your name: ");
+                                userName = Console.ReadLine();
+
+                                if (string.IsNullOrWhiteSpace(userName))
+                                    Console.WriteLine("Name cannot be empty.");
+                                else if (userName.Length < 3)
+                                    Console.WriteLine("Name must be at least 3 characters long.");
+                                else if (int.TryParse(userName, out int result))
+                                    Console.WriteLine("Name cannot be a number.");
+                                else
+                                    isValidName = true;
+                            }
+
+                            // Validate National ID
+                            while (!isValidNationalId)
+                            {
+                                Console.Write("Enter your National ID: ");
+                                nationalId = Console.ReadLine();
+
+                                if (string.IsNullOrWhiteSpace(nationalId))
+                                    Console.WriteLine("National ID cannot be empty.");
+                                else if (!double.TryParse(nationalId, out double result))
+                                    Console.WriteLine("National ID must be numbers only.");
+                                else
+                                    isValidNationalId = true;
+
+                                if (IsNationalIdExist(nationalId))
+                                {
+                                    Console.WriteLine("This National ID already exists in the system. Cannot create duplicate account.");
+                                    Console.ReadKey();
+                                    return;
+                                }
+
+                            }
+
+                            // Validate Initial Balance
+                            while (!isValidInitialBalance)
+                            {
+                                Console.Write("Enter your initial balance: ");
+                                string balanceInput = Console.ReadLine();
+
+                                if (!double.TryParse(balanceInput, out initialBalance))
+                                    Console.WriteLine("Please enter a valid number for balance.");
+                                else if (initialBalance < MinimumBalance)
+                                    Console.WriteLine($"Initial balance must be at least {MinimumBalance} OMR.");
+                                else
+                                    isValidInitialBalance = true;
+                            }
+
+                            // Get last account number
+                            lastAccountNumber = GetTheLastAccountNumberFromAccountFile();
+                            int newAccountNumber = lastAccountNumber + 1;
+
+                            string status = "panding"; // Default status
+
+                            // Add to lists 
+
+                            accountNames.Add(userName);
+                            nationalIds.Add(nationalId);
+                            balances.Add(initialBalance);
+                            requestStatuse.Add(status);
+                            userTypes.Add(userType);
+
+
+
+                            string request = userName + ":" + nationalId + ":" + initialBalance + ":" + status + ":" + "user";
+                            createAccountRequests.Enqueue(request);
+
+                            Console.WriteLine("\nAccount created successfully!");
+                            Console.WriteLine($"Your new account number is: {newAccountNumber}");
+
+
+                        }
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+
+            Console.WriteLine("\nPress any key to return to the menu...");
+            Console.ReadKey();
+        }
+
+        static void Login()
+        {
+            Console.Clear();
+            Console.WriteLine("-- Login --");
+            Console.Write("Enter your National ID: ");
+            string inputNationalId = Console.ReadLine();
+            Console.Write("Enter your user type (admin/user): ");
+            string inputUserType = Console.ReadLine().ToLower();
+
+            bool found = false;
+
+            if (!File.Exists(AccountsFilePath))
+            {
+                Console.WriteLine("Accounts file not found.");
+                Console.ReadKey();
+                return;
+            }
+
+            string[] lines = File.ReadAllLines(AccountsFilePath);
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split(':');
+                if (parts.Length >= 6)
+                {
+                    string fileNationalId = parts[2];
+                    string fileUserType = parts[5];
+                    string accountStatus = parts[4]; // Check if the account is Approved
+
+                    if (fileNationalId == inputNationalId && fileUserType == inputUserType)
+                    {
+                        if (accountStatus != "Approved")
+                        {
+                            Console.WriteLine("\nYour account is not approved yet. Please wait for approval.");
+                            Console.WriteLine("Press any key to return to the main menu.");
+                            Console.ReadKey();
+                            return;
+                        }
+
+                        found = true;
+                        if (fileUserType == "admin")
+                        {
+                            AdminMenu();
+                        }
+                        else if (fileUserType == "user")
+                        {
+                            EndUserMenu();
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (!found)
+            {
+                Console.WriteLine("\nInvalid National ID or User Type. Please try again.");
+                Console.WriteLine("Press any key to return to the main menu.");
+                Console.ReadKey();
+            }
+        }
         //------------------//
         // End User UseCases
         //------------------//
@@ -1090,7 +1328,39 @@
             
         }
 
-      
-       
+
+        static int GetTheLastAccountNumberFromAccountFile()
+        {
+            if (!File.Exists(AccountsFilePath))
+                return 0;
+
+            string lastLine = File.ReadLines(AccountsFilePath).LastOrDefault();
+
+            if (string.IsNullOrEmpty(lastLine))
+                return 0;
+
+            string[] parts = lastLine.Split(':');
+
+            if (parts.Length > 0 && int.TryParse(parts[0], out int lastAcc))
+                return lastAcc;
+
+            return 0;
+        }
+        static bool IsNationalIdExist(string nationalId)
+        {
+            if (nationalIds.Contains(nationalId))
+                return true;
+
+            foreach (string request in createAccountRequests)
+            {
+                var parts = request.Split(':');
+                if (parts.Length >= 2 && parts[1] == nationalId)
+                    return true;
+            }
+
+            return false;
+        }
+
+
     }
 }
