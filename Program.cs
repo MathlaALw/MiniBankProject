@@ -157,6 +157,7 @@ namespace MiniBankProject
                     Console.WriteLine("3. View Reviews");
                     Console.WriteLine("4. View All Account Requests");
                     Console.WriteLine("5. Delete Account");
+                    Console.WriteLine("6. Search Account");
                     Console.WriteLine("0. Exit to Main Menu");
                     string adminChoice = Console.ReadLine();
                     switch (adminChoice)
@@ -175,6 +176,9 @@ namespace MiniBankProject
                             break;
                         case "5":
                             DeleteAccount();
+                            break;
+                        case "6":
+                            SearchAccount();
                             break;
                         case "0":
                             runAdmin = false;
@@ -335,19 +339,19 @@ namespace MiniBankProject
                             lastAccountNumber = GetTheLastAccountNumberFromAccountFile();
                             int newAccountNumber = lastAccountNumber + 1;
 
-                           string status = "panding"; // Default status
+                          // string status = "panding"; // Default status
 
                             // Add to lists 
 
                             accountNames.Add(userName);
                             nationalIds.Add(nationalId);
                             balances.Add(initialBalance);
-                            requestStatuse.Add(status);
+                            requestStatuse.Add("panding");
                             userTypes.Add(userType);
 
 
 
-                            string request = userName + ":" + nationalId + ":" + initialBalance + ":" + status + ":" + "user";
+                            string request = userName + ":" + nationalId + ":" + initialBalance + ":" + "panding" + ":" + "user";
                             createAccountRequests.Enqueue(request);
 
                             Console.WriteLine("\nAccount created successfully!");
@@ -918,7 +922,7 @@ namespace MiniBankProject
                     accountNames.Add(userName);
                     nationalIds.Add(nationalId);
                     balances.Add(initialBalanceDouble);
-                    requestStatuse.Add(initialRequestStatus);
+                    requestStatuse.Add("Approved");
                     userTypes.Add(userType);
                     Console.WriteLine($"Account for {userName} has been created with account number {accountNumber}.{initialRequestStatus}");
 
@@ -940,7 +944,7 @@ namespace MiniBankProject
                     accountNames.Add(userName);
                     nationalIds.Add(nationalId);
                     balances.Add(initialBalanceDouble);
-                    requestStatuse.Add(initialRequestStatus);
+                    requestStatuse.Add("Not Approved");
                     userTypes.Add(userType);
                     Console.WriteLine("Account Request NotApproved");
 
@@ -1087,7 +1091,7 @@ namespace MiniBankProject
 
         }
 
-        //3. View Reviews   
+        //4. View Reviews   
         static void ViewReviews()
         {
             Console.Clear();
@@ -1107,7 +1111,7 @@ namespace MiniBankProject
             Console.ReadKey();
         }
 
-        // 4.Delete Account
+        // 5.Delete Account
         static void DeleteAccount()
         {
             Console.Clear();
@@ -1187,11 +1191,62 @@ namespace MiniBankProject
             Console.WriteLine("Press any key to return to the End User Menu.");
             Console.ReadKey();
         }
-        //------------------//
-        //Save and Load Methods
-        //------------------//
-        // save accounts information to file
-        static void SaveAccountsInformationToFile()
+
+        //6. Search Account
+
+        static void SearchAccount()
+        {
+            Console.Clear();
+            Console.WriteLine("-- Search Account --");
+            try
+            {
+                Console.Write("Enter your account number: ");
+                int enteredAccountNumber = int.Parse(Console.ReadLine());
+                bool accountFound = false;
+                if (!File.Exists(AccountsFilePath))
+                {
+                    Console.WriteLine("Accounts file not found.");
+                    return;
+                }
+                List<string> lines = File.ReadAllLines(AccountsFilePath).ToList();
+                foreach (string line in lines)
+                {
+                   
+                    string[] parts = line.Split(':');
+                    if (parts.Length >=5)
+                    {
+                        int fileAccountNumber = int.Parse(parts[0]);
+                        string name = parts[1];
+                        string nationalId = parts[2];
+                        double balance = double.Parse(parts[3]);
+                        string status = parts[4];
+                        if (fileAccountNumber == enteredAccountNumber)
+                        {
+                            accountFound = true;
+                            Console.WriteLine("Account Number: " + fileAccountNumber);
+                            Console.WriteLine("Account Name: " + name);
+                            Console.WriteLine("National ID: " + nationalId);
+                            Console.WriteLine("Account Balance: " + balance);
+                            Console.WriteLine("Account Status: " + status);
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
+            Console.WriteLine("Press any key to return to the End User Menu.");
+            Console.ReadKey();
+        
+        }
+
+                //------------------//
+                //Save and Load Methods
+                //------------------//
+                // save accounts information to file
+                static void SaveAccountsInformationToFile()
         {
             try
             {
@@ -1262,6 +1317,7 @@ namespace MiniBankProject
                         nationalIds.Add(lines[2]);
                         balances.Add(Convert.ToDouble(lines[3]));
                         requestStatuse.Add(lines[4]);
+                        userTypes.Add(lines[5]);
 
                         if (accountNum > lastAccountNumber)
                             lastAccountNumber = accountNum;
