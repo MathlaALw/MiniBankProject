@@ -99,6 +99,7 @@ namespace MiniBankProject
                     Console.WriteLine("3. Check Balance");
                     Console.WriteLine("4. submit a Review");
                     Console.WriteLine("5. View account Details");
+                    Console.WriteLine("6. Transfer Between Accounts");
                     Console.WriteLine("0. Exit to Main Menu");
 
                     string userChoice = Console.ReadLine();
@@ -120,7 +121,10 @@ namespace MiniBankProject
                         //case "5":
                         //    viewAccountDetails();
                         //    break;
-                      
+                        case "6":
+                            TransferBetweenAccounts();
+                            break;
+
                         case "0":
                             runUser = false;
                             break;
@@ -866,18 +870,140 @@ namespace MiniBankProject
             Console.WriteLine("Press any key to return to the end user menu.");
             Console.ReadKey();
         }
-        //5. View Account Details
-        //static void viewAccountDetails()
-        //{
 
-        //}
 
-       
-        //-------------------//
-        // Admin UseCases // 
-        //-------------------//
-        //1. Approve Account Request
-        static void ApproveAccountRequest()
+        //5. Transfer Between Accounts
+        static void TransferBetweenAccounts()
+        {
+            Console.Clear();
+            Console.WriteLine("-- Transfer Between Accounts --");
+            bool isSuccess = false;
+            while (!isSuccess)
+            {
+                try
+                {
+                    Console.Write("Enter your account number: ");
+                    int enteredAccountNumber = int.Parse(Console.ReadLine());
+                    if (!File.Exists(AccountsFilePath))
+                    {
+                        Console.WriteLine("Accounts file not found.");
+                        return;
+                    }
+                    List<string> lines = File.ReadAllLines(AccountsFilePath).ToList();
+                    bool accountFound = false;
+                    for (int i = 0; i < lines.Count; i++)
+                    {
+                        string[] parts = lines[i].Split(':');
+                        if (parts.Length >= 5)
+                        {
+                            int fileAccountNumber = int.Parse(parts[0]);
+                            string name = parts[1];
+                            string nationalId = parts[2];
+                            double balance = double.Parse(parts[3]);
+                            string status = parts[4];
+                            if (fileAccountNumber == enteredAccountNumber)
+                            {
+                                accountFound = true;
+                                if (status != "Approved")
+                                {
+                                    Console.WriteLine("Account is not approved yet. Cannot transfer money.");
+                                    break;
+                                }
+                                Console.Write("Enter the recipients account number: ");
+                                int recipientAccountNumber = int.Parse(Console.ReadLine());
+                                // Check if recipient account exists
+                                bool recipientFound = false;
+                                for (int j = 0; j < lines.Count; j++)
+                                {
+                                    string[] recipientParts = lines[j].Split(':');
+                                    if (recipientParts.Length >= 5)
+                                    {
+                                        int fileRecipientAccountNumber = int.Parse(recipientParts[0]);
+                                        if (fileRecipientAccountNumber == recipientAccountNumber)
+                                        {
+                                            recipientFound = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (!recipientFound)
+                                {
+                                    Console.WriteLine("Recipient account not found.");
+                                    break;
+                                }
+                                Console.Write("Enter amount to transfer: ");
+                                double amount = double.Parse(Console.ReadLine());
+                                if (amount <= 0)
+                                {
+                                    Console.WriteLine("Amount must be greater than zero.");
+                                    break;
+                                }
+                                if (balance - amount < MinimumBalance)
+                                {
+                                    Console.WriteLine($"Cannot transfer {amount}. Minimum balance of {MinimumBalance} must be maintained.");
+                                    break;
+                                }
+                                // Update balances
+                                double newBalanceSender = balance - amount;
+                                double newBalanceRecipient = 0;
+                                // Update sender balance
+                                parts[3] = newBalanceSender.ToString();
+                                lines[i] = string.Join(":", parts);
+                                // Update recipient balance
+                                for (int j = 0; j < lines.Count; j++)
+                                {
+                                    string[] recipientParts = lines[j].Split(':');
+                                    if (recipientParts.Length >= 5)
+                                    {
+                                        int fileRecipientAccountNumber = int.Parse(recipientParts[0]);
+                                        if (fileRecipientAccountNumber == recipientAccountNumber)
+                                        {
+                                            newBalanceRecipient = double.Parse(recipientParts[3]) + amount;
+                                            recipientParts[3] = newBalanceRecipient.ToString();
+                                            lines[j] = string.Join(":", recipientParts);
+                                            break;
+                                        }
+                                    }
+                                }
+                                File.WriteAllLines(AccountsFilePath, lines);
+                                Console.WriteLine($"Transferred {amount} successfully!");
+                                Console.WriteLine($"New Balance: {newBalanceSender}");
+                                Console.WriteLine($"Recipient New Balance: {newBalanceRecipient}");
+                                isSuccess = true;
+                                break;
+                            }
+                        }
+
+                    }
+                    if (!accountFound)
+                    {
+                        Console.WriteLine("Account number not found. Please try again.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+                Console.WriteLine("Press any key to return to the End User Menu.");
+                Console.ReadKey();
+            }
+
+        }
+
+
+
+//5. View Account Details
+//static void viewAccountDetails()
+//{
+
+//}
+
+
+//-------------------//
+// Admin UseCases // 
+//-------------------//
+//1. Approve Account Request
+static void ApproveAccountRequest()
         {
             Console.Clear();
             Console.WriteLine("Approve Account Request:");
@@ -1263,22 +1389,7 @@ namespace MiniBankProject
             Console.WriteLine("Press any key to return to the End User Menu.");
             Console.ReadKey();
         }
-        //8. Show Top 3 Richest Customers
-        static string GetAccountNumber(string accountNumber) {
-            string[] lines = File.ReadAllLines(AccountsFilePath);
-            foreach (string line in lines)
-            {
-                string[] parts = line.Split(':');
-                if (parts.Length >= 5)
-                {
-                    if (parts[0] == accountNumber)
-                    {
-                        return parts[1];
-                    }
-                }
-            }
-            return null;
-        }
+      
         //8. Show Top 3 Richest Customers
         static void ShowTop3RichestCustomers()
         {
@@ -1340,7 +1451,7 @@ namespace MiniBankProject
             Console.WriteLine("Press any key to return to the End User Menu.");
             Console.ReadKey();
         }
-
+      
         //------------------//
         //Save and Load Methods
         //------------------//
