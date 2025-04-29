@@ -117,9 +117,10 @@ namespace MiniBankProject
                         case "4":
                             SubmitReview();
                             break;
-                        case "5":
-                            viewAccountDetails();
-                            break;
+                        //case "5":
+                        //    viewAccountDetails();
+                        //    break;
+                      
                         case "0":
                             runUser = false;
                             break;
@@ -158,6 +159,7 @@ namespace MiniBankProject
                     Console.WriteLine("4. View All Account Requests");
                     Console.WriteLine("5. Delete Account");
                     Console.WriteLine("6. Search Account");
+                    Console.WriteLine("7. Show Total Bank Balance");
                     Console.WriteLine("0. Exit to Main Menu");
                     string adminChoice = Console.ReadLine();
                     switch (adminChoice)
@@ -179,6 +181,9 @@ namespace MiniBankProject
                             break;
                         case "6":
                             SearchAccount();
+                            break;
+                        case "7":
+                            ShowTotalBankBalance();
                             break;
                         case "0":
                             runAdmin = false;
@@ -573,7 +578,7 @@ namespace MiniBankProject
         //    Console.ReadLine();
         //}
 
-        //2. Deposit Money
+        //1. Deposit Money
         static void DepositMoney()
         {
             Console.Clear();
@@ -660,7 +665,7 @@ namespace MiniBankProject
             Console.ReadKey();
         }
 
-        //3. Withdraw Money
+        //2. Withdraw Money
         static void WithdrawMoney()
         {
             Console.Clear();
@@ -758,7 +763,7 @@ namespace MiniBankProject
             Console.WriteLine("Press any key to return to the End User Menu.");
             Console.ReadKey();
         }
-        //4. Check Balance
+        //3. Check Balance
         static void CheckBalance()
         {
             Console.Clear();
@@ -830,7 +835,7 @@ namespace MiniBankProject
             Console.WriteLine("Press any key to return to the End User Menu.");
             Console.ReadKey();
         }
-        //5. Submit a Review
+        //4. Submit a Review
         static void SubmitReview()
         {
             Console.Clear();
@@ -857,11 +862,13 @@ namespace MiniBankProject
             Console.WriteLine("Press any key to return to the end user menu.");
             Console.ReadKey();
         }
-        //6. View Account Details
-        static void viewAccountDetails()
-        {
+        //5. View Account Details
+        //static void viewAccountDetails()
+        //{
 
-        }
+        //}
+
+       
         //-------------------//
         // Admin UseCases // 
         //-------------------//
@@ -978,22 +985,7 @@ namespace MiniBankProject
                 else
                 {
 
-                    //string request = createAccountRequests.Peek();
-                    //string[] splitlineOfRequest = request.Split(":");
-                    //string accountNum = splitlineOfRequest[0];
-                    //string userName = splitlineOfRequest[1];
-                    //string nationalId = splitlineOfRequest[2];
-                    //string initialBalance = splitlineOfRequest[3];
-                    //string status = splitlineOfRequest[4];
-                    //string userType = splitlineOfRequest[5];
-
-                    //Console.WriteLine("account Num : " + accountNum);
-                    //Console.WriteLine("user name : " + userName);
-                    //Console.WriteLine("national Id : " + nationalId);
-                    //Console.WriteLine("initial balance : " + initialBalance);
-                    //Console.WriteLine("request status : " + status);
-                    //Console.WriteLine("User Type : " + userType);
-
+               
                     string request = createAccountRequests.Peek();
 
                     string[] splitlineOfRequest = request.Split(":");
@@ -1242,11 +1234,37 @@ namespace MiniBankProject
         
         }
 
-                //------------------//
-                //Save and Load Methods
-                //------------------//
-                // save accounts information to file
-                static void SaveAccountsInformationToFile()
+        static void ShowTotalBankBalance()
+        {
+            Console.Clear();
+            Console.WriteLine("-- Total Bank Balance --");
+            double totalBalance = 0;
+            if (!File.Exists(AccountsFilePath))
+            {
+                Console.WriteLine("Accounts file not found.");
+                return;
+            }
+            List<string> lines = File.ReadAllLines(AccountsFilePath).ToList();
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split(':');
+                if (parts.Length >= 5)
+                {
+                    double balance = double.Parse(parts[3]);
+                    totalBalance += balance;
+                }
+            }
+            Console.WriteLine("Total Bank Balance: " + totalBalance);
+
+            Console.WriteLine("Press any key to return to the End User Menu.");
+            Console.ReadKey();
+        }
+
+      //------------------//
+       //Save and Load Methods
+       //------------------//
+      // save accounts information to file
+       static void SaveAccountsInformationToFile()
         {
             try
             {
@@ -1301,8 +1319,7 @@ namespace MiniBankProject
                 using (StreamReader reader = new StreamReader(AccountsFilePath, true))
                 {
                     string content = reader.ReadToEnd();
-                    Console.WriteLine(content);
-                    // string[] lines = content.Split(":");
+                   
 
                     string line;
                     while ((line = reader.ReadLine()) != null)
@@ -1553,6 +1570,8 @@ namespace MiniBankProject
 
         //    return false;
         //}
+
+
 
 
     }
