@@ -160,6 +160,7 @@ namespace MiniBankProject
                     Console.WriteLine("5. Delete Account");
                     Console.WriteLine("6. Search Account");
                     Console.WriteLine("7. Show Total Bank Balance");
+                    Console.WriteLine("8. Show Top 3 Richest Customers");
                     Console.WriteLine("0. Exit to Main Menu");
                     string adminChoice = Console.ReadLine();
                     switch (adminChoice)
@@ -184,6 +185,9 @@ namespace MiniBankProject
                             break;
                         case "7":
                             ShowTotalBankBalance();
+                            break;
+                        case "8":
+                            ShowTop3RichestCustomers();
                             break;
                         case "0":
                             runAdmin = false;
@@ -1233,7 +1237,7 @@ namespace MiniBankProject
             Console.ReadKey();
         
         }
-
+        //7. Show Total Bank Balance
         static void ShowTotalBankBalance()
         {
             Console.Clear();
@@ -1259,12 +1263,89 @@ namespace MiniBankProject
             Console.WriteLine("Press any key to return to the End User Menu.");
             Console.ReadKey();
         }
+        //8. Show Top 3 Richest Customers
+        static string GetAccountNumber(string accountNumber) {
+            string[] lines = File.ReadAllLines(AccountsFilePath);
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split(':');
+                if (parts.Length >= 5)
+                {
+                    if (parts[0] == accountNumber)
+                    {
+                        return parts[1];
+                    }
+                }
+            }
+            return null;
+        }
+        //8. Show Top 3 Richest Customers
+        static void ShowTop3RichestCustomers()
+        {
+            Console.Clear();
+            Console.WriteLine("-- Top 3 Richest Customers --");
 
-      //------------------//
-       //Save and Load Methods
-       //------------------//
-      // save accounts information to file
-       static void SaveAccountsInformationToFile()
+            if (!File.Exists(AccountsFilePath))
+            {
+                Console.WriteLine("Accounts file not found.");
+                return;
+            }
+
+            List<string> lines = File.ReadAllLines(AccountsFilePath).ToList();
+
+            List<string> accountNumbers = new List<string>();
+            List<double> balances = new List<double>();
+
+            // Loop through each line and extract account numbers and balances
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split(':');
+                if (parts.Length >= 5)
+                {
+                    string accountNumber = parts[0];
+                    if (double.TryParse(parts[3], out double balance))
+                    {
+                        accountNumbers.Add(accountNumber);
+                        balances.Add(balance);
+                    }
+                }
+            }
+
+            // Find top 3 richest 
+            for (int i = 0; i < 3; i++)
+            {
+                double maxBalance = double.MinValue; // Initialize to the smallest value
+                int maxIndex = -1;
+
+                for (int j = 0; j < balances.Count; j++)
+                {
+                    if (balances[j] > maxBalance)
+                    {
+                        maxBalance = balances[j];
+                        maxIndex = j;
+                    }
+                }
+
+                if (maxIndex != -1)
+                {
+                    string accountNumber = accountNumbers[maxIndex];
+                    string accountName = GetAccountName(accountNumber); 
+                    Console.WriteLine($"Account Number: {accountNumber}, Account Name: {accountName}, Balance: {balances[maxIndex]} OMR ");
+
+                    // Remove the richest customer from the list to display the next richest
+                    balances.RemoveAt(maxIndex);
+                    accountNumbers.RemoveAt(maxIndex);
+                }
+            }
+            Console.WriteLine("Press any key to return to the End User Menu.");
+            Console.ReadKey();
+        }
+
+        //------------------//
+        //Save and Load Methods
+        //------------------//
+        // save accounts information to file
+        static void SaveAccountsInformationToFile()
         {
             try
             {
@@ -1571,7 +1652,19 @@ namespace MiniBankProject
         //    return false;
         //}
 
-
+        static string GetAccountName(string accountNumber)
+        {
+            string[] lines = File.ReadAllLines(AccountsFilePath);
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split(':');
+                if (parts.Length >= 2 && parts[0] == accountNumber)
+                {
+                    return parts[1];
+                }
+            }
+            return null;
+        }
 
 
     }
