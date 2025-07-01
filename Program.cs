@@ -9,6 +9,7 @@ namespace MiniBankProject
         const string AccountsFilePath = "accounts.txt";
         const string ReviewsFilePath = "reviews.txt";
         const string RequestsFilePath = "requests.txt";
+        const string TransactionsFilePath = "transactions.txt";
 
         // Global lists (parallel)
         static List<int> accountNumbers = new List<int>();
@@ -17,6 +18,8 @@ namespace MiniBankProject
         static List<double> balances = new List<double>();
         static List<string> requestStatuse = new List<string>();
         static List<string> userTypes = new List<string>();
+        static List<string> hashedPasswords = new List<string>();
+        static List<bool> isAccountLocked = new List<bool>();
 
 
         // Queues and Stacks
@@ -25,7 +28,7 @@ namespace MiniBankProject
 
         // Account number generator
         static int lastAccountNumber;
-        
+
 
         // Main method
         static void Main(string[] args)
@@ -93,19 +96,21 @@ namespace MiniBankProject
 
                     Console.Clear();
                     Console.WriteLine("End User Menu:");
-                    
+
                     Console.WriteLine("1. Deposit Money");
                     Console.WriteLine("2. Withdraw Money");
                     Console.WriteLine("3. Check Balance");
                     Console.WriteLine("4. submit a Review");
                     Console.WriteLine("5. View account Details");
                     Console.WriteLine("6. Transfer Between Accounts");
+                    Console.WriteLine("7. Generate Monthly Statement");
+                    Console.WriteLine("8. Display Transactions");
                     Console.WriteLine("0. Exit to Main Menu");
 
                     string userChoice = Console.ReadLine();
                     switch (userChoice)
                     {
-                     
+
                         case "1":
                             DepositMoney();
                             break;
@@ -124,7 +129,12 @@ namespace MiniBankProject
                         case "6":
                             TransferBetweenAccounts();
                             break;
-
+                        case "7":
+                            GenerateMonthlyStatement();
+                            break;
+                        case "8":
+                            DisplayTransactions();
+                            break;
                         case "0":
                             runUser = false;
                             break;
@@ -165,6 +175,7 @@ namespace MiniBankProject
                     Console.WriteLine("6. Search Account");
                     Console.WriteLine("7. Show Total Bank Balance");
                     Console.WriteLine("8. Show Top 3 Richest Customers");
+                    Console.WriteLine("9. Unlock Locked Account");
                     Console.WriteLine("0. Exit to Main Menu");
                     string adminChoice = Console.ReadLine();
                     switch (adminChoice)
@@ -192,6 +203,9 @@ namespace MiniBankProject
                             break;
                         case "8":
                             ShowTop3RichestCustomers();
+                            break;
+                        case "9":
+                            UnlockLockedAccount();
                             break;
                         case "0":
                             runAdmin = false;
@@ -272,8 +286,8 @@ namespace MiniBankProject
                         if (parts.Length >= 3)
                         {
                             //nationalIds.Add(parts[2]);
-                             fileNationalId = parts[2];
-                          
+                            fileNationalId = parts[2];
+
                         }
                         if (fileNationalId == nationalId)
                         {
@@ -294,9 +308,14 @@ namespace MiniBankProject
                         }
                         else
                             isValidNationalId = true;
-                        }
-                   
+                    }
+
                 }
+                Console.Write("Set your password: ");
+                string password = ReadPassword();
+                // Hash the password
+                string hashedPassword = HashPassword(password);
+
 
 
                 while (!isValidUserType)
@@ -312,17 +331,19 @@ namespace MiniBankProject
                         if (userType == "admin")
                         {
                             lastAccountNumber = GetTheLastAccountNumberFromAccountFile();
-                           //string status = "panding"; // Default status
+                            //string status = "panding"; // Default status
 
                             // Save the admin information to the file
-                            
+
                             accountNames.Add(userName);
                             nationalIds.Add(nationalId);
                             balances.Add(initialBalance);
                             requestStatuse.Add("panding");
                             userTypes.Add(userType);
-                         
-                            string adminAccountLine = userName + ":" + nationalId + ":" + "0.0" + ":" + "panding" + ":" + "admin";
+                            hashedPasswords.Add(hashedPassword);
+                            isAccountLocked.Add(false);
+
+                            string adminAccountLine = userName + ":" + nationalId + ":" + "0.0" + ":" + "panding" + ":" + "admin"+":"+hashedPassword+":"+isAccountLocked;
                             createAccountRequests.Enqueue(adminAccountLine);
                             Console.WriteLine("Admin account created successfully!");
                             Console.WriteLine($"Your new account number is: {lastAccountNumber + 1}");
@@ -332,7 +353,7 @@ namespace MiniBankProject
                         }
                         if (userType == "user")
                         {
-                        
+
 
                             // Validate Initial Balance
                             while (!isValidInitialBalance)
@@ -352,7 +373,7 @@ namespace MiniBankProject
                             lastAccountNumber = GetTheLastAccountNumberFromAccountFile();
                             int newAccountNumber = lastAccountNumber + 1;
 
-                          // string status = "panding"; // Default status
+                            // string status = "panding"; // Default status
 
                             // Add to lists 
 
@@ -361,14 +382,15 @@ namespace MiniBankProject
                             balances.Add(initialBalance);
                             requestStatuse.Add("panding");
                             userTypes.Add(userType);
+                            hashedPasswords.Add(hashedPassword);
+                            isAccountLocked.Add(false);
 
 
-
-                            string request = userName + ":" + nationalId + ":" + initialBalance + ":" + "panding" + ":" + "user";
+                            string request = userName + ":" + nationalId + ":" + initialBalance + ":" + "panding" + ":" + userType +":" + hashedPassword+":"+isAccountLocked;
                             createAccountRequests.Enqueue(request);
 
                             Console.WriteLine("\nAccount created successfully!");
-                           // Console.WriteLine(request);
+                            // Console.WriteLine(request);
                             Console.WriteLine($"Your new account number is: {newAccountNumber}");
 
 
@@ -388,65 +410,98 @@ namespace MiniBankProject
 
         static void Login()
         {
-            Console.Clear();
-            Console.WriteLine("-- Login --");
-            Console.Write("Enter your National ID: ");
-            string inputNationalId = Console.ReadLine();
             
+                Console.Clear();
+                Console.WriteLine("-- Login --");
+                Console.Write("Enter your National ID: ");
+                string inputNationalId = Console.ReadLine();
 
-            Console.Write("Enter your user type (admin/user): ");
-            string inputUserType = Console.ReadLine().ToLower();
-
-            bool found = false;
-
-            if (!File.Exists(AccountsFilePath))
-            {
-                Console.WriteLine("Accounts file not found.");
-                Console.ReadKey();
-                return;
-            }
-
-            string[] lines = File.ReadAllLines(AccountsFilePath);
-            foreach (string line in lines)
-            {
-                string[] parts = line.Split(':');
-                if (parts.Length >= 6)
+                if (!File.Exists(AccountsFilePath))
                 {
-                    string fileNationalId = parts[2];
-                    string fileUserType = parts[5];
-                    string accountStatus = parts[4]; // Check if the account is Approved
+                    Console.WriteLine("Accounts file not found.");
+                    Console.ReadKey();
+                    return;
+                }
 
-                    if (fileNationalId == inputNationalId && fileUserType == inputUserType)
+                string[] lines = File.ReadAllLines(AccountsFilePath);
+                int loginAttempts = 0;
+                bool accountFound = false;
+                int lineIndex = -1;
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string[] parts = lines[i].Split(':');
+                    if (parts.Length >= 8)
                     {
-                        if (accountStatus != "Approved")
+                        string fileNationalId = parts[2];
+                        string accountStatus = parts[4];
+                        string userType = parts[5];
+                        string storedHashedPassword = parts[6];
+                        bool isLocked = bool.Parse(parts[7]);
+
+                        if (fileNationalId == inputNationalId)
                         {
-                            Console.WriteLine("\nYour account is not approved yet. Please wait for approval.");
-                            Console.WriteLine("Press any key to return to the main menu.");
+                            accountFound = true;
+                            lineIndex = i;
+
+                            if (isLocked)
+                            {
+                                Console.WriteLine("\nYour account is locked due to multiple failed login attempts.");
+                                Console.WriteLine("Please contact an admin to unlock your account.");
+                                Console.ReadKey();
+                                return;
+                            }
+
+                            if (accountStatus != "Approved")
+                            {
+                                Console.WriteLine("\nYour account is not approved yet. Please wait.");
+                                Console.ReadKey();
+                                return;
+                            }
+
+                            // Now validate password (3 tries max)
+                            while (loginAttempts < 3)
+                            {
+                                Console.Write("Enter your password: ");
+                                string inputPassword = ReadPassword();
+                                string hashedInput = HashPassword(inputPassword);
+
+                                if (hashedInput == storedHashedPassword)
+                                {
+                                    Console.WriteLine("\nLogin successful.");
+                                    if (userType == "admin")
+                                        AdminMenu();
+                                    else
+                                        EndUserMenu();
+                                    return;
+                                }
+                                else
+                                {
+                                    loginAttempts++;
+                                    Console.WriteLine($"Incorrect password. Attempts left: {3 - loginAttempts}");
+                                }
+                            }
+
+                            // Lock account after 3 failed attempts
+                            Console.WriteLine("\nToo many failed attempts. Your account has been locked.");
+                            string[] updatedParts = lines[i].Split(':');
+                            updatedParts[7] = "true"; // lock the account
+                            lines[i] = string.Join(":", updatedParts);
+                            File.WriteAllLines(AccountsFilePath, lines); // save changes
                             Console.ReadKey();
                             return;
                         }
-
-                        found = true;
-                        if (fileUserType == "admin")
-                        {
-                            AdminMenu();
-                        }
-                        else if (fileUserType == "user")
-                        {
-                            EndUserMenu();
-                        }
-                        break;
                     }
+                }
+
+                if (!accountFound)
+                {
+                    Console.WriteLine("\n National ID not found. Please try again.");
+                    Console.ReadKey();
                 }
             }
 
-            if (!found)
-            {
-                Console.WriteLine("\nInvalid National ID or User Type. Please try again.");
-                Console.WriteLine("Press any key to return to the main menu.");
-                Console.ReadKey();
-            }
-        }
+        
         //------------------//
         // End User UseCases
         //------------------//
@@ -643,6 +698,7 @@ namespace MiniBankProject
                                     lines[i] = string.Join(":", parts);
 
                                     File.WriteAllLines(AccountsFilePath, lines);
+                                    LogTransaction(fileAccountNumber, "Deposit", amount, newBalance);
 
                                     Console.WriteLine($"Deposited {amount} successfully!");
                                     Console.WriteLine($"New Balance: {newBalance}");
@@ -748,6 +804,7 @@ namespace MiniBankProject
                                 lines[i] = parts[0] + ":" + parts[1] + ":" + parts[2] + ":" + parts[3] + ":" + parts[4];
 
                                 File.WriteAllLines(AccountsFilePath, lines);
+                                LogTransaction(fileAccountNumber, "Withdraw", amount, newBalance);
 
                                 Console.WriteLine($"Withdrew {amount} successfully!");
                                 Console.WriteLine($"New Balance: {newBalance}");
@@ -966,6 +1023,10 @@ namespace MiniBankProject
                                     }
                                 }
                                 File.WriteAllLines(AccountsFilePath, lines);
+                                // Store transaction logs
+                                LogTransaction(enteredAccountNumber, "Transfer Sent", amount, newBalanceSender);
+                                LogTransaction(recipientAccountNumber, "Transfer Received", amount, newBalanceRecipient);
+
                                 Console.WriteLine($"Transferred {amount} successfully!");
                                 Console.WriteLine($"New Balance: {newBalanceSender}");
                                 Console.WriteLine($"Recipient New Balance: {newBalanceRecipient}");
@@ -990,67 +1051,200 @@ namespace MiniBankProject
 
         }
 
-
-
-//5. View Account Details
-//static void viewAccountDetails()
-//{
-
-//}
-
-
-//-------------------//
-// Admin UseCases // 
-//-------------------//
-//1. Approve Account Request
-static void ApproveAccountRequest()
+        static void GenerateMonthlyStatement()
         {
             Console.Clear();
-            Console.WriteLine("Approve Account Request:");
-            if (createAccountRequests.Count == 0)
+            Console.WriteLine("Monthly Statement Generator");
+
+            Console.Write("Enter your account number: ");
+            if (!int.TryParse(Console.ReadLine(), out int accNum))
             {
-                Console.WriteLine("No account requests available.");
+                Console.WriteLine("Invalid account number.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.Write("Enter month (1-12): ");
+            if (!int.TryParse(Console.ReadLine(), out int month) || month < 1 || month > 12)
+            {
+                Console.WriteLine("Invalid month.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.Write("Enter year (e.g. 2025): ");
+            if (!int.TryParse(Console.ReadLine(), out int year))
+            {
+                Console.WriteLine("Invalid year.");
+                Console.ReadKey();
+                return;
+            }
+
+            string transactionFile = "transactions.txt";
+            if (!File.Exists(transactionFile))
+            {
+                Console.WriteLine("Transaction file not found.");
+                Console.ReadKey();
+                return;
+            }
+
+            string[] lines = File.ReadAllLines(transactionFile);
+            List<string> statement = new List<string>();
+
+            foreach (string line in lines)
+            {
+
+                string[] parts = line.Split('|');
+                if (parts.Length != 5) continue;
+
+                if (!int.TryParse(parts[0], out int logAcc)) continue;
+                if (!DateTime.TryParse(parts[4], out DateTime logDate)) continue;
+
+                if (logAcc == accNum && logDate.Month == month && logDate.Year == year)
+                {
+                    statement.Add(line);
+                }
+            }
+
+            if (statement.Count == 0)
+            {
+                Console.WriteLine("No transactions found for this account in that month.");
             }
             else
             {
-                
-                // git the first request from the queue
-                string request = createAccountRequests.Dequeue();
+                string filename = $"Statement_Acc{accNum}_{year}-{month:D2}.txt";
+                File.WriteAllLines(filename, statement);
+                Console.WriteLine($"\nStatement saved to: {filename}");
+            }
+
+            Console.WriteLine("\nPress any key to return...");
+            Console.ReadKey();
+        }
+
+
+
+        static void DisplayTransactions()
+        {
+            Console.Clear();
+            Console.WriteLine("-- View Transactions --");
+
+            Console.Write("Enter your account number: ");
+            
+            if (!int.TryParse(Console.ReadLine(), out int accNum))
+            {
+                Console.WriteLine("Invalid account number.");
+                Console.ReadKey();
+                return;
+            }
+
+            if (!File.Exists("transactions.txt"))
+            {
+                Console.WriteLine("No transactions found.");
+                Console.ReadKey();
+                return;
+            }
+
+            string[] logs = File.ReadAllLines("transactions.txt");
+            bool any = false;
+
+            Console.WriteLine($"\nTransactions for Account: {accNum}");
+            Console.WriteLine("----------------------------------------");
+            Console.WriteLine("Type           | Amount   | Balance | Date & Time");
+            Console.WriteLine("----------------------------------------");
+
+            foreach (string log in logs)
+            {
+                string[] parts = log.Split('|');
+                if (parts.Length != 5) continue;
+
+                if (int.TryParse(parts[0], out int logAccNum) && logAccNum == accNum)
+                {
+                    string type = parts[1];
+                    string amount = parts[2];
+                    string balance = parts[3];
+                    string timestamp = parts[4];
+
+                    Console.WriteLine($"{type,-14} {amount,8}   {balance,7}   {timestamp}");
+                    any = true;
+                }
+            }
+
+            if (!any)
+            {
+                Console.WriteLine("No transactions found for this account.");
+            }
+
+            Console.WriteLine("\nPress any key to return to the menu.");
+            Console.ReadKey();
+        }
+
+
+        // insert transaction log
+        static void LogTransaction(int accountNumber, string type, double amount, double balanceAfter)
+        {
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            string log = $"{accountNumber}|{type}|{amount}|{balanceAfter}|{timestamp}";
+
+            File.AppendAllText(TransactionsFilePath, log + Environment.NewLine);
+
+
+        }
+
+
+
+
+        //5. View Account Details
+        //static void viewAccountDetails()
+        //{
+
+        //}
+
+
+        //-------------------//
+        // Admin UseCases // 
+        //-------------------//
+        //1. Approve Account Request
+        static void ApproveAccountRequest()
+        {
+            Console.Clear();
+            Console.WriteLine("Request:");
+            if (createAccountRequests.Count == 0)
+            {
+                Console.WriteLine("No requests available.");
+
+            }
+            else
+            {
+
+
+                string request = createAccountRequests.Peek();
 
                 string[] splitlineOfRequest = request.Split(":");
-                if (splitlineOfRequest.Length < 5)
-                {
-                    Console.WriteLine("Invalid request format.");
-                    return;
-                }
-
                 string userName = splitlineOfRequest[0];
                 string nationalId = splitlineOfRequest[1];
                 string initialBalance = splitlineOfRequest[2];
                 string inialRequestStatus = splitlineOfRequest[3];
-                string userType = splitlineOfRequest[4];
+                string userType = splitlineOfRequest[4]; 
+                string hashPassword = splitlineOfRequest[5];
 
 
-                Console.WriteLine("view account Request");
+
+                //Console.WriteLine("view account Request");
                 Console.WriteLine("user name : " + userName);
                 Console.WriteLine("national Id : " + nationalId);
                 Console.WriteLine("initial balance : " + initialBalance);
                 Console.WriteLine("request status : " + inialRequestStatus);
                 Console.WriteLine("User Type : " + userType);
-
-
-
-               // request = createAccountRequests.Dequeue(); // remove from memory
                 Console.WriteLine("Do you want to approve this request? (y/n)");
                 string requestStatus = Console.ReadLine();
-
+                request = createAccountRequests.Dequeue(); // remove from memory
                 if (requestStatus.ToLower() == "y")
                 {
-                  
-                  
+
 
 
                     Console.WriteLine("Account request approved.");
+
                     // Add the account to the system
                     string initialRequestStatus = "Approved";
                     int accountNumber = GitTheLastAccountNumberFromAccountFile() + 1;
@@ -1059,8 +1253,10 @@ static void ApproveAccountRequest()
                     accountNames.Add(userName);
                     nationalIds.Add(nationalId);
                     balances.Add(initialBalanceDouble);
-                    requestStatuse.Add("Approved");
+                    requestStatuse.Add(initialRequestStatus);
                     userTypes.Add(userType);
+                    hashedPasswords.Add(hashPassword);
+
                     Console.WriteLine($"Account for {userName} has been created with account number {accountNumber}.{initialRequestStatus}");
 
                     string requestToRemove = request; // remove from memory
@@ -1073,40 +1269,44 @@ static void ApproveAccountRequest()
                 {
 
                     //// Add the account to the system
-                    //string initialRequestStatus = "Not Approved";
+                    string initialRequestStatus1 = "Not Approved";
                     int accountNumber = GitTheLastAccountNumberFromAccountFile() + 1;
                     double initialBalanceDouble = double.Parse(initialBalance);
-                    //accountNumbers.Add(accountNumber);
-                    string initialRequestStatus = "Not Approved";
+                    accountNumbers.Add(accountNumber);
                     accountNames.Add(userName);
                     nationalIds.Add(nationalId);
                     balances.Add(initialBalanceDouble);
-                    requestStatuse.Add("Not Approved");
+                    requestStatuse.Add(initialRequestStatus1);
                     userTypes.Add(userType);
+                    hashedPasswords.Add(hashPassword);
                     Console.WriteLine("Account Request NotApproved");
-
-                    //delete the request from the file
                     string requestToRemove = request; // remove from memory
+
                     string first = GitTheFirstRequestInFileAndDelete().ToString(); // remove from file
 
 
+                    Console.WriteLine($"Account for {userName} has been rejected with account number {accountNumber}.");
 
 
 
                 }
 
+                Console.WriteLine("Press any key to return to the admin menu.");
+                Console.ReadKey();
             }
-
-            Console.WriteLine("Press any key to return to the admin menu.");
-            Console.ReadKey();
         }
-        //2. view account requests
-        static void ViewAccountRequests()
+
+
+
+            
+
+         //2. view account requests
+         static void ViewAccountRequests()
         {
             try
             {
                 Console.Clear();
-                Console.WriteLine("Request:");
+                Console.WriteLine("Request : ");
                 if (createAccountRequests.Count == 0)
                 {
                     Console.WriteLine("No requests available.");
@@ -1123,7 +1323,8 @@ static void ApproveAccountRequest()
                     string nationalId = splitlineOfRequest[1];
                     string initialBalance = splitlineOfRequest[2];
                     string inialRequestStatus = splitlineOfRequest[3];
-
+                    string userType = splitlineOfRequest[4];
+                    string hashPassword = splitlineOfRequest[5];
 
 
                     //Console.WriteLine("view account Request");
@@ -1131,6 +1332,8 @@ static void ApproveAccountRequest()
                     Console.WriteLine("national Id : " + nationalId);
                     Console.WriteLine("initial balance : " + initialBalance);
                     Console.WriteLine("request status : " + inialRequestStatus);
+                    Console.WriteLine("user type : " + userType);
+                    Console.WriteLine("password : " + hashPassword);
 
                 }
 
@@ -1227,6 +1430,7 @@ static void ApproveAccountRequest()
                 foreach (string review in reviewsStack)
                 {
                     Console.WriteLine(review);
+                    
                 }
             }
             Console.WriteLine("Press any key to return to the admin menu.");
@@ -1451,10 +1655,71 @@ static void ApproveAccountRequest()
             Console.WriteLine("Press any key to return to the End User Menu.");
             Console.ReadKey();
         }
-      
+
+        //9. Unlock Account
+        static void UnlockLockedAccount()
+        {
+            Console.Clear();
+            Console.WriteLine("Unlock Locked Account");
+
+            Console.Write("Enter the National ID to unlock: ");
+            string inputNationalId = Console.ReadLine();
+
+            if (!File.Exists(AccountsFilePath))
+            {
+                Console.WriteLine("Accounts file not found.");
+                Console.ReadKey();
+                return;
+            }
+
+            string[] lines = File.ReadAllLines(AccountsFilePath);
+            bool found = false;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string[] parts = lines[i].Split(':');
+                if (parts.Length >= 8)
+                {
+                    string nationalId = parts[2];
+                    string isLocked = parts[7];
+
+                    if (nationalId == inputNationalId)
+                    {
+                        found = true;
+
+                        if (isLocked.ToLower() == "true")
+                        {
+                            parts[7] = "false";
+                            lines[i] = string.Join(":", parts);
+                            File.WriteAllLines(AccountsFilePath, lines);
+
+                            Console.WriteLine($"\nAccount with National ID {nationalId} has been unlocked.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"\nAccount with National ID {nationalId} is not locked.");
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            if (!found)
+            {
+                Console.WriteLine("\nNo account found with that National ID.");
+            }
+
+            Console.WriteLine("\nPress any key to return to the admin menu.");
+            Console.ReadKey();
+        }
+
+
+
         //------------------//
         //Save and Load Methods
         //------------------//
+
         // save accounts information to file
         static void SaveAccountsInformationToFile()
         {
@@ -1464,7 +1729,8 @@ static void ApproveAccountRequest()
                 {
                     for (int i = 0; i < accountNumbers.Count; i++)
                     {
-                        string dataLine = accountNumbers[i] + ":" + accountNames[i] + ":" + nationalIds[i] + ":" + balances[i] + ":" + requestStatuse[i]+ ":"+ userTypes[i];
+
+                        string dataLine = accountNumbers[i] + ":" + accountNames[i] + ":" + nationalIds[i] + ":" + balances[i] + ":" + requestStatuse[i]+ ":"+ userTypes[i]+":"+ hashedPasswords[i]+":" + isAccountLocked[i];
                         writer.WriteLine(dataLine);
                     }
                 }
@@ -1527,6 +1793,8 @@ static void ApproveAccountRequest()
                         balances.Add(Convert.ToDouble(lines[3]));
                         requestStatuse.Add(lines[4]);
                         userTypes.Add(lines[5]);
+                        hashedPasswords.Add(lines[6]);
+                        isAccountLocked.Add(bool.Parse(lines[7]));
 
                         if (accountNum > lastAccountNumber)
                             lastAccountNumber = accountNum;
@@ -1594,21 +1862,23 @@ static void ApproveAccountRequest()
                         //{
                         //    writer.WriteLine(request);
                         //}
-                        //string request = createAccountRequests.Peek();
+                        string request = createAccountRequests.Peek();
                         for (int i = 0; i < createAccountRequests.Count; i++)
                         {
-                            string request = createAccountRequests.Dequeue();
+                            
                             string[] splitlineOfRequest = request.Split(":");
                             string accountNum = splitlineOfRequest[0];
                             string userName = splitlineOfRequest[1];
                             string initialBalance = splitlineOfRequest[2];
                             string inialRequestStatus = splitlineOfRequest[3];
+                            string userType = splitlineOfRequest[4];
+                            string hashPassword = splitlineOfRequest[5];
 
 
-                            string requestInOneLine = accountNum + ":" + userName + ":" + initialBalance + ":" + inialRequestStatus;
+                            string requestInOneLine = accountNum + ":" + userName + ":" + initialBalance + ":" + inialRequestStatus+":"+ userType + ":" + hashPassword;
                             writer.WriteLine(requestInOneLine);
                         }
-                        //request = createAccountRequests.Dequeue();
+                        request = createAccountRequests.Dequeue();
                     }
                     Console.WriteLine("Requests saved successfully.");
                 }
@@ -1728,7 +1998,7 @@ static void ApproveAccountRequest()
             
         }
 
-
+        // get the last account number from the file
         static int GetTheLastAccountNumberFromAccountFile()
         {
             if (!File.Exists(AccountsFilePath))
@@ -1748,21 +2018,7 @@ static void ApproveAccountRequest()
         }
 
 
-        //static bool IsNationalIdExist(string nationalId)
-        //{
-        //    if (nationalIds.Contains(nationalId))
-        //        return true;
-
-        //    foreach (string request in createAccountRequests)
-        //    {
-        //        string[] parts = request.Split(':');
-        //        if (parts.Length >= 2 && parts[1] == nationalId)
-        //            return true;
-        //    }
-
-        //    return false;
-        //}
-
+        // get the account name from the file based on the account number
         static string GetAccountName(string accountNumber)
         {
             string[] lines = File.ReadAllLines(AccountsFilePath);
@@ -1776,7 +2032,40 @@ static void ApproveAccountRequest()
             }
             return null;
         }
+        // Read password from console without echoing characters
+        static string ReadPassword()
+        {
+            string password = "";
+            ConsoleKeyInfo key;
 
+            do
+            {
+                key = Console.ReadKey(true);
+                if (key.Key != ConsoleKey.Backspace && key.Key != ConsoleKey.Enter)
+                {
+                    password += key.KeyChar;
+                    Console.Write("*");
+                }
+                else if (key.Key == ConsoleKey.Backspace && password.Length > 0)
+                {
+                    password = password[0..^1];
+                    Console.Write("\b \b");
+                }
+            } while (key.Key != ConsoleKey.Enter);
+
+            Console.WriteLine();
+            return password;
+        }
+        // Hash the password using SHA256
+        static string HashPassword(string password)
+        {
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(password);
+                byte[] hashBytes = sha256.ComputeHash(bytes);
+                return Convert.ToBase64String(hashBytes);
+            }
+        }
 
     }
 }
