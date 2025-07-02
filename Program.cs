@@ -121,6 +121,8 @@ namespace MiniBankProject
                     Console.WriteLine("8. Display Transactions");
                     Console.WriteLine("9. Update Account Info");
                     Console.WriteLine("10. Request a Loan");
+                    Console.WriteLine("11.Show Last ( N ) Transactions");
+                    Console.WriteLine("12. Show Transactions After Date");
                     Console.WriteLine("0. Exit to Main Menu");
 
                     string userChoice = Console.ReadLine();
@@ -157,6 +159,13 @@ namespace MiniBankProject
                         case "10":
                             RequestLoan();
                             break;
+                        case "11":
+                            ShowLastNTransactions();
+                            break;
+                        case "12":
+                            ShowTransactionsAfterDate();
+                            break;
+
                         case "0":
                             runUser = false;
                             break;
@@ -1249,6 +1258,113 @@ namespace MiniBankProject
                 Console.ReadKey();
             }
         }
+
+        static void ShowLastNTransactions()
+        {
+            Console.Clear();
+            Console.Write("Enter your National ID: ");
+            string nationalId = Console.ReadLine();
+
+            if (!File.Exists(AccountsFilePath) || !File.Exists("transactions.txt"))
+            {
+                Console.WriteLine("Required files not found.");
+                Console.ReadKey();
+                return;
+            }
+
+            string[] accountLines = File.ReadAllLines(AccountsFilePath);
+            int? accountNumber = null;
+
+            foreach (var line in accountLines)
+            {
+                var parts = line.Split(':');
+                if (parts.Length >= 3 && parts[2] == nationalId)
+                {
+                    if (int.TryParse(parts[0], out int accNum))
+                    {
+                        accountNumber = accNum;
+                        break;
+                    }
+                }
+            }
+
+            if (accountNumber == null)
+            {
+                Console.WriteLine("No account found for this National ID.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.Write("How many recent transactions to display? ");
+            if (!int.TryParse(Console.ReadLine(), out int n))
+            {
+                Console.WriteLine("Invalid number.");
+                Console.ReadKey();
+                return;
+            }
+
+            string[] lines = File.ReadAllLines("transactions.txt");
+            var userTx = lines
+                .Where(line =>
+                {
+                    var parts = line.Split('|');
+                    return parts.Length == 5 && int.TryParse(parts[0], out int id) && id == accountNumber;
+                })
+                .Reverse()
+                .Take(n)
+                .Reverse();
+
+            if (!userTx.Any())
+            {
+                Console.WriteLine("No transactions found for this National ID.");
+            }
+            else
+            {
+                Console.WriteLine($"\nLast {n} transactions for National ID {nationalId}:\n");
+                foreach (var line in userTx)
+                    Console.WriteLine(line);
+            }
+
+            Console.WriteLine("\nPress any key to return...");
+            Console.ReadKey();
+        }
+
+
+        static void ShowTransactionsAfterDate()
+        {
+            Console.Clear();
+            Console.Write("Enter your account number: ");
+            if (!int.TryParse(Console.ReadLine(), out int accNum))
+            {
+                Console.WriteLine("Invalid account number.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.Write("Enter starting date (YYYY-MM-DD): ");
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime fromDate))
+            {
+                Console.WriteLine("Invalid date.");
+                Console.ReadKey();
+                return;
+            }
+
+            string[] lines = File.ReadAllLines("transactions.txt");
+            var filtered = lines
+                .Select(line => line.Split('|'))
+                .Where(parts => parts.Length == 5 && int.TryParse(parts[0], out int id) && id == accNum)
+                .Where(parts => DateTime.TryParse(parts[4], out DateTime date) && date >= fromDate);
+
+            Console.WriteLine($"\nTransactions since {fromDate:yyyy-MM-dd} for Account {accNum}:\n");
+            foreach (var parts in filtered)
+                Console.WriteLine(string.Join("|", parts));
+
+            Console.WriteLine("\nPress any key to return...");
+            Console.ReadKey();
+        }
+
+
+
 
 
 
