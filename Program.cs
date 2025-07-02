@@ -88,7 +88,6 @@ namespace MiniBankProject
                             break;
                         case "0":
                             SaveAccountsInformationToFile();
-                            SaveReviews();
                             SaveRequsts();
                             Console.Write("\nDo you want to create a backup before exiting? (y/n): ");
                             string response = Console.ReadLine()?.Trim().ToLower();
@@ -97,6 +96,9 @@ namespace MiniBankProject
                                 BackupData();
                             }
                             Console.WriteLine("Exiting system...");
+                            Console.WriteLine("Thank you for using Mini Bank System!");
+                            Console.WriteLine("Press any key to exit.");
+                            Console.ReadKey();
                             runAgain = false;
                             break;
 
@@ -107,14 +109,14 @@ namespace MiniBankProject
 
 
                 }
-                catch (Exception e)//show exception message if the user enter invalid input
+                catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
 
 
                     Console.WriteLine("Invalid Choice! Try again.");
-                    Console.WriteLine("Press any key  "); //ask user to press any key to continue
-                    Console.ReadLine(); //read the user inputConsole.ReadLine();
+                    Console.WriteLine("Press any key  "); 
+                    Console.ReadLine(); 
                 }
 
             }
@@ -504,7 +506,7 @@ namespace MiniBankProject
         }
 
         
-
+        // Login
         static void Login()
         {
             Console.Clear();
@@ -517,11 +519,11 @@ namespace MiniBankProject
             string inputPassword = ReadPassword();
             string hashedInput = HashPassword(inputPassword);
 
-            // Check fixed admin credentials first
+            // Check fixed admin first
             const string AdminID = "admin";
             const string AdminPasswordHash = "vLFfghR5tNV3K9DKhmwArV+SbjWAcgZZzIDTnJ0JgCo="; // Example SHA256 hash of "111111"
 
-            if (inputId.Equals(AdminID, StringComparison.OrdinalIgnoreCase) && hashedInput == AdminPasswordHash)
+            if (inputId.Equals(AdminID, StringComparison.OrdinalIgnoreCase) && hashedInput == AdminPasswordHash) 
             {
                 Console.WriteLine("\nAdmin login successful.");
                 AdminMenu();
@@ -866,26 +868,42 @@ namespace MiniBankProject
         {
             Console.Clear();
             Console.WriteLine("Submit a Review:");
-            bool isTrue = false;
-            string review = "";
-            while (!isTrue)
+          
+            Console.Write("Enter your Account Number: ");
+            if (!int.TryParse(Console.ReadLine(), out int accNum))
             {
-                Console.WriteLine("Enter your review: ");
-                review = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(review))
-                {
-                    Console.WriteLine("Review cannot be empty.");
-                    isTrue = false;
-                }
-                else
-                {
-                    isTrue = true;
-                }
+                Console.WriteLine("Invalid account number.");
+                Console.ReadKey();
+                return;
             }
 
-            reviewsStack.Push(review);
-            Console.WriteLine("Your review has been submitted.");
-            Console.WriteLine("Press any key to return to the end user menu.");
+            if (!File.Exists("accounts.txt"))
+            {
+                Console.WriteLine("Accounts file not found.");
+                Console.ReadKey();
+                return;
+            }
+
+            string[] accounts = File.ReadAllLines("accounts.txt");
+            bool accountExists = accounts.Any(line => line.Split(':')[0] == accNum.ToString());
+
+            if (!accountExists)
+            {
+                Console.WriteLine("Account not found.");
+                Console.ReadKey();
+                return;
+            }
+
+           
+            Console.Write("Write your review: ");
+            string comment = Console.ReadLine();
+
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            string reviewEntry = $"{accNum}|{comment}|{timestamp}";
+
+            File.AppendAllText("reviews.txt", reviewEntry + Environment.NewLine);
+
+            Console.WriteLine("\nThank you! Your review has been submitted.");
             Console.ReadKey();
         }
 
@@ -894,7 +912,7 @@ namespace MiniBankProject
         static void TransferBetweenAccounts()
         {
             Console.Clear();
-            Console.WriteLine("-- Transfer Between Accounts --");
+            Console.WriteLine("Transfer Between Accounts");
             bool isSuccess = false;
             while (!isSuccess)
             {
@@ -1192,7 +1210,9 @@ namespace MiniBankProject
                     File.WriteAllLines(AccountsFilePath, lines);
 
                     Console.WriteLine("\nAccount info updated successfully.");
+                    Console.WriteLine("\nPress any key to return...");
                     Console.ReadKey();
+                    
                     return;
                 }
             }
@@ -1202,6 +1222,7 @@ namespace MiniBankProject
                 Console.WriteLine("Account not found.");
                 Console.ReadKey();
             }
+            
         }
 
         //10. Request a Loan
@@ -1283,6 +1304,7 @@ namespace MiniBankProject
                     SaveLoanRequestsToFile();
 
                     Console.WriteLine("Loan request submitted. Waiting admin approval.");
+                    Console.WriteLine("\nPress any key to return...");
                     Console.ReadKey();
                     return;
                 }
@@ -1454,6 +1476,8 @@ namespace MiniBankProject
         //-------------------//
         // Admin UseCases // 
         //-------------------//
+
+
         //1. Approve Account Request
         static void ApproveAccountRequest()
         {
@@ -2129,6 +2153,7 @@ namespace MiniBankProject
         //Save and Load Methods
         //------------------//
 
+
         // save accounts information to file
         static void SaveAccountsInformationToFile()
         {
@@ -2151,26 +2176,7 @@ namespace MiniBankProject
                 Console.WriteLine("Error saving file.");
             }
         }
-        // save reviews to file
-        static void SaveReviews()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(ReviewsFilePath, true))
-                {
-                    foreach (string review in reviewsStack)
-                    {
-                        writer.WriteLine(review);
-                    }
-                }
-                Console.WriteLine("Reviews saved successfully.");
-            }
-            catch
-            {
-                Console.WriteLine("Error saving file.");
-            }
-
-        }
+      
         // load accounts information from file
         static void LoadAccountsInformationFromFile()
         {
@@ -2344,14 +2350,6 @@ namespace MiniBankProject
                 loanRequests = new Queue<string>(File.ReadAllLines(LoanRequestsFilePath));
         }
 
-
-        // save Active Loans to file
-        static void SaveActiveLoansToFile()
-        {
-            File.WriteAllLines(ActiveLoansFilePath, activeLoanIds);
-        }
-
-
         // Load Feedback Ratings
         static void LoadFeedbackRatings()
         {
@@ -2385,6 +2383,8 @@ namespace MiniBankProject
 
 
         // Additional Methods
+
+
         // get the last account number from the file
         static int GitTheLastAccountNumberFromAccountFile()
         {
@@ -2485,7 +2485,6 @@ namespace MiniBankProject
             return 0;
         }
 
-
         // get the account name from the file based on the account number
         static string GetAccountName(string accountNumber)
         {
@@ -2535,7 +2534,7 @@ namespace MiniBankProject
             }
         }
 
-
+        // User Feedback Method
         static void UserFeedback()
         {
             Console.Write("\nPlease rate our service (1 to 5): ");
@@ -2588,7 +2587,19 @@ namespace MiniBankProject
                 backupContent.AddRange(File.ReadAllLines("active_loans.txt"));
                 backupContent.Add("");
             }
-
+            if (File.Exists("appointments.txt"))
+            {
+                backupContent.Add("APPOINTMENT");
+                backupContent.AddRange(File.ReadAllLines("appointments.txt"));
+                backupContent.Add("");
+            }
+            
+            if (File.Exists(ReviewsFilePath))
+            {
+                backupContent.Add("REVIEWS");
+                backupContent.AddRange(File.ReadAllLines(ReviewsFilePath));
+                backupContent.Add("");
+            }
             File.WriteAllLines(backupFileName, backupContent);
 
             Console.WriteLine($"\nBackup created");
