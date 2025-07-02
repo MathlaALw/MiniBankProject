@@ -22,6 +22,11 @@ namespace MiniBankProject
         const string ActiveLoansFilePath = "active_loans.txt";
         const string FeedbackFilePath = "feedback.txt";
         const string AppointmentsFilePath = "appointments.txt";
+
+        // Exchange Rates
+        const double USD_RATE = 3.8;
+        const double EUR_RATE = 4.1;
+
         // Global lists (parallel)
         static List<int> accountNumbers = new List<int>();
         static List<string> accountNames = new List<string>();
@@ -613,88 +618,73 @@ namespace MiniBankProject
         static void DepositMoney()
         {
             Console.Clear();
-            Console.WriteLine("-- Deposit Money --");
+            Console.WriteLine("Deposit");
 
-            bool isSuccess = false;
-
-            while (!isSuccess)
+            Console.Write("Enter your Account Number: ");
+            if (!int.TryParse(Console.ReadLine(), out int accNum))
             {
-                try
-                {
-                    Console.Write("Enter your account number: ");
-                    int enteredAccountNumber = int.Parse(Console.ReadLine());
-
-                    if (!File.Exists(AccountsFilePath))
-                    {
-                        Console.WriteLine("Accounts file not found.");
-                        return;
-                    }
-
-                    List<string> lines = File.ReadAllLines(AccountsFilePath).ToList();
-                    bool accountFound = false;
-
-                    for (int i = 0; i < lines.Count; i++)
-                    {
-                        string[] parts = lines[i].Split(':');
-                        if (parts.Length >= 5)
-                        {
-                            int fileAccountNumber = int.Parse(parts[0]);
-                            string name = parts[1];
-                            string nationalId = parts[2];
-                            double balance = double.Parse(parts[3]);
-                            string status = parts[4];
-
-                            if (fileAccountNumber == enteredAccountNumber)
-                            {
-                                accountFound = true;
-
-                                if (status == "Approved")
-                                {
-                                    Console.WriteLine("Account is approved.");
-                                    Console.Write("Enter amount to deposit: ");
-                                    double amount = double.Parse(Console.ReadLine());
-
-                                    if (amount <= 0)
-                                    {
-                                        Console.WriteLine("Amount must be greater than zero.");
-                                        break;
-                                    }
-
-                                    double newBalance = balance + amount;
-                                    parts[3] = newBalance.ToString(); // Update balance part
-
-                                    lines[i] = string.Join(":", parts);
-
-                                    File.WriteAllLines(AccountsFilePath, lines);
-                                    LogTransaction(fileAccountNumber, "Deposit", amount, newBalance);
-
-                                    Console.WriteLine($"Deposited {amount} successfully!");
-                                    Console.WriteLine($"New Balance: {newBalance}");
-                                    isSuccess = true;
-                                    UserFeedback();
-                                    break;
-
-                                }
-                                else if (status == "Not Approved")
-                                {
-                                    Console.WriteLine("Account is not approved yet.");
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (!accountFound)
-                    {
-                        Console.WriteLine("Account is not found.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error: " + ex.Message);
-                }
+                Console.WriteLine("Invalid account number.");
+                Console.ReadKey();
+                return;
             }
 
+            Console.WriteLine("Select Currency: ");
+            Console.WriteLine("1. OMR (Local)");
+            Console.WriteLine("2. USD");
+            Console.WriteLine("3. EUR");
+            Console.Write("Enter choice: ");
+            string currencyChoice = Console.ReadLine();
+
+            Console.Write("Enter deposit amount: ");
+            if (!double.TryParse(Console.ReadLine(), out double originalAmount) || originalAmount <= 0)
+            {
+                Console.WriteLine("Invalid amount.");
+                Console.ReadKey();
+                return;
+            }
+
+            string currency = "OMR";
+            double convertedAmount = originalAmount;
+
+            switch (currencyChoice)
+            {
+                case "2":
+                    currency = "USD";
+                    convertedAmount = originalAmount * USD_RATE;
+                    break;
+                case "3":
+                    currency = "EUR";
+                    convertedAmount = originalAmount * EUR_RATE;
+                    break;
+            }
+
+            // Load accounts
+            string[] lines = File.ReadAllLines("accounts.txt");
+            int index = Array.FindIndex(lines, line => line.Split(':')[0] == accNum.ToString());
+
+            if (index == -1)
+            {
+                Console.WriteLine("Account not found.");
+                Console.ReadKey();
+                return;
+            }
+
+            string[] parts = lines[index].Split(':');
+            double currentBalance = double.Parse(parts[3]);
+            currentBalance += convertedAmount;
+            parts[3] = currentBalance.ToString("F2");
+            lines[index] = string.Join(":", parts);
+            File.WriteAllLines("accounts.txt", lines);
+
+            // Log transaction
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            string log = $"{accNum}|Deposit ({currency}) {originalAmount}|Converted {convertedAmount:F2}|Balance {currentBalance:F2}|{timestamp}";
+            File.AppendAllText("transactions.txt", log + Environment.NewLine);
+
+            Console.WriteLine($"{originalAmount} {currency} deposited (converted to {convertedAmount:F2} OMR).");
+            Console.WriteLine($"New Balance: {currentBalance:F2} OMR");
+            UserFeedback();
+            Console.ReadKey();
             Console.WriteLine("Press any key to return to the End User Menu.");
             Console.ReadKey();
         }
