@@ -21,6 +21,7 @@ namespace MiniBankProject
         const string LoanRequestsFilePath = "loan_requests.txt";
         const string ActiveLoansFilePath = "active_loans.txt";
         const string FeedbackFilePath = "feedback.txt";
+        const string AppointmentsFilePath = "appointments.txt";
         // Global lists (parallel)
         static List<int> accountNumbers = new List<int>();
         static List<string> accountNames = new List<string>();
@@ -43,7 +44,8 @@ namespace MiniBankProject
         // Feedback ratings
 
         static List<int> FeedbackRatings = new List<int>();
-
+        // appointment 
+        static Queue<string> appointmentQueue = new Queue<string>();
         // Account number generator
         static int lastAccountNumber;
 
@@ -57,7 +59,7 @@ namespace MiniBankProject
             LoadRequsts();
             LoadLoanData();
             LoadFeedbackRatings();
-
+            LoadAppointments();
             bool runAgain = true;
             while (runAgain)
             {
@@ -138,6 +140,7 @@ namespace MiniBankProject
                     Console.WriteLine("11.Show Last ( N ) Transactions");
                     Console.WriteLine("12. Show Transactions After Date");
                     Console.WriteLine("13. Show all Transactions");
+                    Console.WriteLine("14. Book an Appointment with Bank Manager");
                     Console.WriteLine("0. Exit to Main Menu");
 
                     string userChoice = Console.ReadLine();
@@ -182,6 +185,9 @@ namespace MiniBankProject
                             break;
                         case "13":
                             PrintAllTransactionsOfUser();
+                            break;
+                        case "14":
+                            BookAppointment();
                             break;
                         case "0":
                             runUser = false;
@@ -1298,7 +1304,7 @@ namespace MiniBankProject
                 Console.ReadKey();
             }
         }
-
+        //11. Show Last N Transactions
         static void ShowLastNTransactions()
         {
             Console.Clear();
@@ -1369,7 +1375,7 @@ namespace MiniBankProject
             Console.ReadKey();
         }
 
-
+        //12. Show Transactions After Date
         static void ShowTransactionsAfterDate()
         {
             Console.Clear();
@@ -1403,6 +1409,52 @@ namespace MiniBankProject
             Console.ReadKey();
         }
 
+        //13. Book Appointment
+        static void BookAppointment()
+        {
+            Console.Clear();
+            Console.WriteLine("Book Bank Appointment");
+
+            Console.Write("Enter your Account Number: ");
+            if (!int.TryParse(Console.ReadLine(), out int accNum))
+            {
+                Console.WriteLine("Invalid account number.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Check if already has an appointment
+            bool alreadyBooked = appointmentQueue.Any(entry =>
+            {
+                string[] parts = entry.Split('|');
+                return parts.Length >= 1 && parts[0] == accNum.ToString();
+            });
+
+            if (alreadyBooked)
+            {
+                Console.WriteLine("You already have an appointment booked.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.Write("Enter service type (Loan Discussion, Consultation, etc.): ");
+            string service = Console.ReadLine();
+
+            Console.Write("Enter date & time (yyyy-MM-dd HH:mm): ");
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime appointmentDate))
+            {
+                Console.WriteLine("Invalid date/time.");
+                Console.ReadKey();
+                return;
+            }
+
+            string entry = $"{accNum}|{service}|{appointmentDate:yyyy-MM-dd HH:mm}";
+            appointmentQueue.Enqueue(entry);
+            SaveAppointments();
+
+            Console.WriteLine("Appointment booked successfully.");
+            Console.ReadKey();
+        }
 
 
 
@@ -2308,6 +2360,8 @@ namespace MiniBankProject
         {
             File.WriteAllLines(ActiveLoansFilePath, activeLoanIds);
         }
+
+
         // Load Feedback Ratings
         static void LoadFeedbackRatings()
         {
@@ -2323,6 +2377,22 @@ namespace MiniBankProject
                 }
             }
         }
+        // save appointment
+        static void SaveAppointments()
+        {
+            File.WriteAllLines(AppointmentsFilePath, appointmentQueue);
+        }
+        // Load appointment
+        static void LoadAppointments()
+        {
+            if (File.Exists(AppointmentsFilePath))
+            {
+                var lines = File.ReadAllLines(AppointmentsFilePath);
+                foreach (var line in lines)
+                    appointmentQueue.Enqueue(line);
+            }
+        }
+
 
         // Additional Methods
         // get the last account number from the file
