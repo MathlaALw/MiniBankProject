@@ -83,7 +83,13 @@ namespace MiniBankProject
                             SaveAccountsInformationToFile();
                             SaveReviews();
                             SaveRequsts();
-                            
+                            Console.Write("\nDo you want to create a backup before exiting? (y/n): ");
+                            string response = Console.ReadLine()?.Trim().ToLower();
+                            if (response == "y")
+                            {
+                                BackupData();
+                            }
+                            Console.WriteLine("Exiting system...");
                             runAgain = false;
                             break;
 
@@ -2421,5 +2427,48 @@ namespace MiniBankProject
                 Console.WriteLine("Invalid rating. Feedback must be a number between 1 and 5.");
             }
         }
+
+        // Backup Data
+        static void BackupData()
+        {
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HHmm");
+            string backupFileName = $"Backup_{timestamp}.txt";
+
+            List<string> backupContent = new List<string>();
+
+            if (File.Exists(AccountsFilePath))
+            {
+                backupContent.Add("ACCOUNTS");
+                backupContent.AddRange(File.ReadAllLines(AccountsFilePath));
+                backupContent.Add("");
+            }
+
+            if (File.Exists("transactions.txt"))
+            {
+                backupContent.Add("TRANSACTIONS");
+                backupContent.AddRange(File.ReadAllLines("transactions.txt"));
+                backupContent.Add("");
+            }
+
+            if (File.Exists("loan_requests.txt"))
+            {
+                backupContent.Add("LOAN REQUESTS");
+                backupContent.AddRange(File.ReadAllLines("loan_requests.txt"));
+                backupContent.Add("");
+            }
+
+            if (File.Exists("active_loans.txt"))
+            {
+                backupContent.Add("ACTIVE LOANS");
+                backupContent.AddRange(File.ReadAllLines("active_loans.txt"));
+                backupContent.Add("");
+            }
+
+            File.WriteAllLines(backupFileName, backupContent);
+
+            Console.WriteLine($"\nBackup created");
+            Console.ReadKey();
+        }
+
     }
 }
