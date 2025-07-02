@@ -20,7 +20,7 @@ namespace MiniBankProject
         const string TransactionsFilePath = "transactions.txt";
         const string LoanRequestsFilePath = "loan_requests.txt";
         const string ActiveLoansFilePath = "active_loans.txt";
-
+        const string FeedbackFilePath = "feedback.txt";
         // Global lists (parallel)
         static List<int> accountNumbers = new List<int>();
         static List<string> accountNames = new List<string>();
@@ -40,6 +40,9 @@ namespace MiniBankProject
         // Queues and Stacks
         static Queue<string> createAccountRequests = new Queue<string>();
         static Stack<string> reviewsStack = new Stack<string>();
+        // Feedback ratings
+
+        static List<int> FeedbackRatings = new List<int>();
 
         // Account number generator
         static int lastAccountNumber;
@@ -53,6 +56,7 @@ namespace MiniBankProject
             LoadReviews();
             LoadRequsts();
             LoadLoanData();
+            LoadFeedbackRatings();
 
             bool runAgain = true;
             while (runAgain)
@@ -212,6 +216,7 @@ namespace MiniBankProject
                     Console.WriteLine("8. Show Top 3 Richest Customers");
                     Console.WriteLine("9. Unlock Locked Account");
                     Console.WriteLine("10. Process Loan Requests");
+                    Console.WriteLine("11. View Average Feedback Score");
                     Console.WriteLine("0. Exit to Main Menu");
                     string adminChoice = Console.ReadLine();
                     switch (adminChoice)
@@ -245,6 +250,9 @@ namespace MiniBankProject
                             break;
                         case "10":
                             ProcessLoanRequests();
+                            break;
+                        case "11":
+                            ShowAverageFeedback();
                             break;
                         case "0":
                             runAdmin = false;
@@ -644,7 +652,9 @@ namespace MiniBankProject
                                     Console.WriteLine($"Deposited {amount} successfully!");
                                     Console.WriteLine($"New Balance: {newBalance}");
                                     isSuccess = true;
+                                    UserFeedback();
                                     break;
+
                                 }
                                 else if (status == "Not Approved")
                                 {
@@ -750,6 +760,7 @@ namespace MiniBankProject
                                 Console.WriteLine($"Withdrew {amount} successfully!");
                                 Console.WriteLine($"New Balance: {newBalance}");
                                 isSuccess = true;
+                                UserFeedback();
                                 break;
                             }
                         }
@@ -972,6 +983,7 @@ namespace MiniBankProject
                                 Console.WriteLine($"New Balance: {newBalanceSender}");
                                 Console.WriteLine($"Recipient New Balance: {newBalanceRecipient}");
                                 isSuccess = true;
+                                UserFeedback();
                                 break;
                             }
                         }
@@ -1982,7 +1994,20 @@ namespace MiniBankProject
             Console.ReadKey();
         }
 
+        //11. show average feedback
+        static void ShowAverageFeedback()
+        {
+            if (FeedbackRatings.Count == 0)
+            {
+                Console.WriteLine("No feedback ratings available.");
+                return;
+            }
 
+            double average = FeedbackRatings.Average();
+
+            Console.WriteLine($"Average Feedback Score: {average:F2} out of 5");
+            Console.ReadKey();
+        }
 
 
 
@@ -2212,6 +2237,21 @@ namespace MiniBankProject
         {
             File.WriteAllLines(ActiveLoansFilePath, activeLoanIds);
         }
+        // Load Feedback Ratings
+        static void LoadFeedbackRatings()
+        {
+            if (File.Exists(FeedbackFilePath))
+            {
+                string[] lines = File.ReadAllLines(FeedbackFilePath);
+                foreach (string line in lines)
+                {
+                    if (int.TryParse(line, out int rating) && rating >= 1 && rating <= 5)
+                    {
+                        FeedbackRatings.Add(rating);
+                    }
+                }
+            }
+        }
 
         // Additional Methods
         // get the last account number from the file
@@ -2364,5 +2404,22 @@ namespace MiniBankProject
             }
         }
 
+
+        static void UserFeedback()
+        {
+            Console.Write("\nPlease rate our service (1 to 5): ");
+            string input = Console.ReadLine();
+
+            if (int.TryParse(input, out int rating) && rating >= 1 && rating <= 5)
+            {
+                FeedbackRatings.Add(rating);
+                File.AppendAllText(FeedbackFilePath, rating + Environment.NewLine);
+                Console.WriteLine("Thank you for your feedback!");
+            }
+            else
+            {
+                Console.WriteLine("Invalid rating. Feedback must be a number between 1 and 5.");
+            }
+        }
     }
 }
