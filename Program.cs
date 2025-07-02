@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Data;
 using System.Net;
+using System.Net.Sockets;
 using System.Numerics;
 using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Security.Principal;
 
 namespace MiniBankProject
 {
@@ -467,106 +471,117 @@ namespace MiniBankProject
             Console.ReadKey();
         }
 
+        
+
         static void Login()
         {
-            
-                Console.Clear();
-                Console.WriteLine("Login");
-                Console.Write("Enter your National ID: ");
-                string inputNationalId = Console.ReadLine();
+            Console.Clear();
+            Console.WriteLine("Login");
 
-                if (!File.Exists(AccountsFilePath))
+            Console.Write("Enter your National ID if you user -- 'admin' As Admin: ");
+            string inputId = Console.ReadLine();
+
+            Console.Write("Enter your password: ");
+            string inputPassword = ReadPassword();
+            string hashedInput = HashPassword(inputPassword);
+
+            // Check fixed admin credentials first
+            const string AdminID = "admin";
+            const string AdminPasswordHash = "vLFfghR5tNV3K9DKhmwArV+SbjWAcgZZzIDTnJ0JgCo="; // Example SHA256 hash of "111111"
+
+            if (inputId.Equals(AdminID, StringComparison.OrdinalIgnoreCase) && hashedInput == AdminPasswordHash)
+            {
+                Console.WriteLine("\nAdmin login successful.");
+                AdminMenu();
+                return;
+            }
+
+            if (!File.Exists(AccountsFilePath))
+            {
+                Console.WriteLine("Accounts file not found.");
+                Console.ReadKey();
+                return;
+            }
+
+            string[] lines = File.ReadAllLines(AccountsFilePath);
+            bool accountFound = false;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string[] parts = lines[i].Split(':');
+                if (parts.Length < 8) continue;
+
+                string fileNationalId = parts[2];
+                string accountStatus = parts[4];
+                string userType = parts[5];
+                string storedHash = parts[6];
+                bool isLocked = bool.Parse(parts[7]);
+
+                if (fileNationalId == inputId)
                 {
-                    Console.WriteLine("Accounts file not found.");
+                    accountFound = true;
+
+                    if (isLocked)
+                    {
+                        Console.WriteLine("\nYour account is locked. Please contact admin.");
+                        Console.ReadKey();
+                        return;
+                    }
+
+                    if (accountStatus != "Approved")
+                    {
+                        Console.WriteLine("\nYour account is not approved yet.");
+                        Console.ReadKey();
+                        return;
+                    }
+
+                    int loginAttempts = 0;
+                    while (loginAttempts < 3)
+                    {
+                        if (hashedInput == storedHash)
+                        {
+                            Console.WriteLine("\nLogin successful.");
+                            if (userType == "admin")
+                                AdminMenu();
+                            else
+                                EndUserMenu();
+                            return;
+                        }
+                        else
+                        {
+                            loginAttempts++;
+                            if (loginAttempts < 3)
+                            {
+                                Console.Write("Incorrect password. Try again: ");
+                                inputPassword = ReadPassword();
+                                hashedInput = HashPassword(inputPassword);
+                            }
+                        }
+                    }
+
+                    // Lock the account after 3 failed attempts
+                    Console.WriteLine("\nToo many failed attempts. Your account is now locked.");
+                    parts[7] = "true";
+                    lines[i] = string.Join(":", parts);
+                    File.WriteAllLines(AccountsFilePath, lines);
                     Console.ReadKey();
                     return;
                 }
-
-                string[] lines = File.ReadAllLines(AccountsFilePath);
-                int loginAttempts = 0;
-                bool accountFound = false;
-                int lineIndex = -1;
-
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    string[] parts = lines[i].Split(':');
-                    if (parts.Length >= 8)
-                    {
-                        string fileNationalId = parts[2];
-                        string accountStatus = parts[4];
-                        string userType = parts[5];
-                        string storedHashedPassword = parts[6];
-                        bool isLocked = bool.Parse(parts[7]);
-
-                        if (fileNationalId == inputNationalId)
-                        {
-                            accountFound = true;
-                            lineIndex = i;
-
-                            if (isLocked)
-                            {
-                                Console.WriteLine("\nYour account is locked due to multiple failed login attempts.");
-                                Console.WriteLine("Please contact an admin to unlock your account.");
-                                Console.ReadKey();
-                                return;
-                            }
-
-                            if (accountStatus != "Approved")
-                            {
-                                Console.WriteLine("\nYour account is not approved yet. Please wait.");
-                                Console.ReadKey();
-                                return;
-                            }
-
-                            // Now validate password (3 tries max)
-                            while (loginAttempts < 3)
-                            {
-                                Console.Write("Enter your password: ");
-                                string inputPassword = ReadPassword();
-                                string hashedInput = HashPassword(inputPassword);
-
-                                if (hashedInput == storedHashedPassword)
-                                {
-                                    Console.WriteLine("\nLogin successful.");
-                                    if (userType == "admin")
-                                        AdminMenu();
-                                    else
-                                        EndUserMenu();
-                                    return;
-                                }
-                                else
-                                {
-                                    loginAttempts++;
-                                    Console.WriteLine($"Incorrect password. Attempts left: {3 - loginAttempts}");
-                                }
-                            }
-
-                            // Lock account after 3 failed attempts
-                            Console.WriteLine("\nToo many failed attempts. Your account has been locked.");
-                            string[] updatedParts = lines[i].Split(':');
-                            updatedParts[7] = "true"; // lock the account
-                            lines[i] = string.Join(":", updatedParts);
-                            File.WriteAllLines(AccountsFilePath, lines); // save changes
-                            Console.ReadKey();
-                            return;
-                        }
-                    }
-                }
-
-                if (!accountFound)
-                {
-                    Console.WriteLine("\n National ID not found. Please try again.");
-                    Console.ReadKey();
-                }
             }
 
-        
+            if (!accountFound)
+            {
+                Console.WriteLine("\nNational ID not found.");
+                Console.ReadKey();
+            }
+        }
+
         //------------------//
         // End User UseCases
         //------------------//
-        
 
-       
+
+
         //1. Deposit Money
         static void DepositMoney()
         {
