@@ -137,6 +137,7 @@ namespace MiniBankProject
                     Console.WriteLine("10. Request a Loan");
                     Console.WriteLine("11.Show Last ( N ) Transactions");
                     Console.WriteLine("12. Show Transactions After Date");
+                    Console.WriteLine("13. Show all Transactions");
                     Console.WriteLine("0. Exit to Main Menu");
 
                     string userChoice = Console.ReadLine();
@@ -179,7 +180,9 @@ namespace MiniBankProject
                         case "12":
                             ShowTransactionsAfterDate();
                             break;
-
+                        case "13":
+                            PrintAllTransactionsOfUser();
+                            break;
                         case "0":
                             runUser = false;
                             break;
@@ -223,6 +226,7 @@ namespace MiniBankProject
                     Console.WriteLine("9. Unlock Locked Account");
                     Console.WriteLine("10. Process Loan Requests");
                     Console.WriteLine("11. View Average Feedback Score");
+                    Console.WriteLine("12. Print All Transactions Of User");
                     Console.WriteLine("0. Exit to Main Menu");
                     string adminChoice = Console.ReadLine();
                     switch (adminChoice)
@@ -259,6 +263,9 @@ namespace MiniBankProject
                             break;
                         case "11":
                             ShowAverageFeedback();
+                            break;
+                        case "12":
+                            PrintAllTransactionsOfUser();
                             break;
                         case "0":
                             runAdmin = false;
@@ -2012,6 +2019,64 @@ namespace MiniBankProject
             double average = FeedbackRatings.Average();
 
             Console.WriteLine($"Average Feedback Score: {average:F2} out of 5");
+            Console.ReadKey();
+        }
+
+
+
+        // Common Methods
+
+        static void PrintAllTransactionsOfUser()
+        {
+
+            Console.Clear();
+            Console.WriteLine("View All Transactions");
+
+            Console.Write("Enter Account Number: ");
+            if (!int.TryParse(Console.ReadLine(), out int accNum))
+            {
+                Console.WriteLine("Invalid account number.");
+                Console.ReadKey();
+                return;
+            }
+
+            if (!File.Exists("transactions.txt"))
+            {
+                Console.WriteLine("Transaction file not found.");
+                Console.ReadKey();
+                return;
+            }
+
+            string[] allTx = File.ReadAllLines("transactions.txt");
+            var userTx = allTx
+                .Select(line => line.Split('|'))
+                .Where(parts => parts.Length == 5 && int.TryParse(parts[0], out int a) && a == accNum)
+                .Select(parts => new
+                {
+                    Type = parts[1],
+                    Amount = parts[2],
+                    Balance = parts[3],
+                    Date = parts[4]
+                })
+                .ToList();
+
+            if (userTx.Count == 0)
+            {
+                Console.WriteLine("No transactions found for this account.");
+            }
+            else
+            {
+                Console.WriteLine($"\nAll Transactions for Account #{accNum}:\n");
+                Console.WriteLine("{0,-20} {1,-15} {2,10} {3,15}", "Date", "Type", "Amount", "Balance After");
+
+                foreach (var tx in userTx)
+                {
+                    Console.WriteLine("{0,-20} {1,-15} {2,10} {3,15}",
+                        tx.Date, tx.Type, tx.Amount, tx.Balance);
+                }
+            }
+
+            Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
         }
 
