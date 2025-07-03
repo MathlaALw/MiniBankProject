@@ -35,7 +35,7 @@ namespace MiniBankProject
         static List<string> requestStatuse = new List<string>();
         static List<string> userTypes = new List<string>();
         static List<string> hashedPasswords = new List<string>();
-        static List<bool> isAccountLocked = new List<bool>();
+        static List<string> isAccountLocked = new List<string>();
         static List<string> phoneNumbers = new List<string>();
         static List<string> addresses = new List<string>();
         // Loan 
@@ -88,7 +88,7 @@ namespace MiniBankProject
                             break;
                         case "0":
                             SaveAccountsInformationToFile();
-                            SaveRequsts();
+                            //SaveRequsts();
                             Console.Write("\nDo you want to create a backup before exiting? (y/n): ");
                             string response = Console.ReadLine()?.Trim().ToLower();
                             if (response == "y")
@@ -313,12 +313,14 @@ namespace MiniBankProject
             bool isValidNationalId = false;
             bool isValidInitialBalance = false;
             bool isValidUserType = false;
+            bool isAccountLocked1 = false;
             string userName = "";
             string nationalId = "";
             double initialBalance = 0;
             string userType = "";
             string phone = "";
             string address = "";
+            string requestStatuse1= "panding"; // Default status
 
             try
             {
@@ -429,21 +431,28 @@ namespace MiniBankProject
                             //string status = "panding"; // Default status
 
                             // Save the admin information to the file
-
+                            
                             accountNames.Add(userName);
                             nationalIds.Add(nationalId);
                             balances.Add(initialBalance);
-                            requestStatuse.Add("panding");
+                            requestStatuse.Add(requestStatuse1);
                             userTypes.Add(userType);
                             hashedPasswords.Add(hashedPassword);
-                            isAccountLocked.Add(false);
+                            isAccountLocked.Add("false");
                             phoneNumbers.Add(phone);
                             addresses.Add(address);
 
-                            string adminAccountLine = userName + ":" + nationalId + ":" + "0.0" + ":" + "panding" + ":" + "admin"+":"+hashedPassword+":"+isAccountLocked+":"+phone+":"+address;
+
+                            //lastAccountNumber = GetTheLastAccountNumberFromAccountFile();
+                            int newAccountNumber = lastAccountNumber + 1;
+
+
+                            string adminAccountLine = newAccountNumber + ":" + userName + ":" + nationalId + ":" + "0.0" + ":" + requestStatuse1 + ":" + "admin" + ":" + hashedPassword + ":" + isAccountLocked1 + ":" + phone + ":" + address;
                             createAccountRequests.Enqueue(adminAccountLine);
                             Console.WriteLine("Admin account created successfully!");
                             Console.WriteLine($"Your new account number is: {lastAccountNumber + 1}");
+                            File.AppendAllText("accounts.txt", adminAccountLine + Environment.NewLine);
+
                             Console.WriteLine("Press any key to return to the menu...");
                             Console.ReadKey();
 
@@ -477,17 +486,16 @@ namespace MiniBankProject
                             accountNames.Add(userName);
                             nationalIds.Add(nationalId);
                             balances.Add(initialBalance);
-                            requestStatuse.Add("panding");
+                            requestStatuse.Add(requestStatuse1);
                             userTypes.Add(userType);
                             hashedPasswords.Add(hashedPassword);
-                            isAccountLocked.Add(false);
+                            isAccountLocked.Add("false");
 
 
-                            string request = userName + ":" + nationalId + ":" + initialBalance + ":" + "panding" + ":" + userType +":" + hashedPassword+":"+isAccountLocked + ":" + phone + ":" + address;
+                            string request = newAccountNumber + ":" + userName + ":" + nationalId + ":" + initialBalance + ":" + requestStatuse1 + ":" + userType + ":" + hashedPassword + ":" + isAccountLocked1 + ":" + phone + ":" + address;
                             createAccountRequests.Enqueue(request);
-
                             Console.WriteLine("\nAccount created successfully!");
-                            // Console.WriteLine(request);
+                            File.AppendAllText("accounts.txt", request + Environment.NewLine);
                             Console.WriteLine($"Your new account number is: {newAccountNumber}");
 
 
@@ -505,7 +513,11 @@ namespace MiniBankProject
             Console.ReadKey();
         }
 
+
+
         
+
+
         // Login
         static void Login()
         {
@@ -695,7 +707,7 @@ namespace MiniBankProject
         static void WithdrawMoney()
         {
             Console.Clear();
-            Console.WriteLine("-- Withdraw Money --");
+            Console.WriteLine("Withdraw Money");
 
             bool isSuccess = false;
 
@@ -729,6 +741,12 @@ namespace MiniBankProject
                             string nationalId = parts[2];
                             double balance = double.Parse(parts[3]);
                             string status = parts[4];
+                            string userType = parts[5];
+                            string hashedPassword = parts[6];
+                            string isAccountLocked = parts[7];
+                            string phone = parts[8];
+                            string address = parts[9];
+
 
                             if (fileAccountNumber == enteredAccountNumber)
                             {
@@ -763,7 +781,7 @@ namespace MiniBankProject
                                 parts[3] = newBalance.ToString();
 
                                 // Manual way to rebuild the line
-                                lines[i] = parts[0] + ":" + parts[1] + ":" + parts[2] + ":" + parts[3] + ":" + parts[4];
+                                lines[i] = parts[0] + ":" + parts[1] + ":" + parts[2] + ":" + parts[3] + ":" + parts[4] + ":" + parts[5] + ":" + parts[6] + ":" + parts[7] + ":" + parts[8] + ":" + parts[9];
 
                                 File.WriteAllLines(AccountsFilePath, lines);
                                 LogTransaction(fileAccountNumber, "Withdraw", amount, newBalance);
@@ -1495,21 +1513,23 @@ namespace MiniBankProject
                 string request = createAccountRequests.Peek();
 
                 string[] splitlineOfRequest = request.Split(":");
-                string userName = splitlineOfRequest[0];
-                string nationalId = splitlineOfRequest[1];
-                string initialBalance = splitlineOfRequest[2];
-                string inialRequestStatus = splitlineOfRequest[3];
-                string userType = splitlineOfRequest[4]; 
-                string hashPassword = splitlineOfRequest[5];
+                string account = splitlineOfRequest[0];
+                string userName = splitlineOfRequest[1];
+                string nationalId = splitlineOfRequest[2];
+                string initialBalance = splitlineOfRequest[3];
+                string inialRequestStatus = splitlineOfRequest[4];
+                string userType = splitlineOfRequest[5]; 
+                string hashPassword = splitlineOfRequest[6];
 
 
 
                 //Console.WriteLine("view account Request");
+                Console.WriteLine("account Number: " + account);
                 Console.WriteLine("user name : " + userName);
                 Console.WriteLine("national Id : " + nationalId);
                 Console.WriteLine("initial balance : " + initialBalance);
-                Console.WriteLine("request status : " + inialRequestStatus);
-                Console.WriteLine("User Type : " + userType);
+                //Console.WriteLine("request status : " + inialRequestStatus);
+                Console.WriteLine("user Type : " + userType);
                 Console.WriteLine("Do you want to approve this request? (y/n)");
                 string requestStatus = Console.ReadLine();
                 request = createAccountRequests.Dequeue(); // remove from memory
@@ -1518,40 +1538,39 @@ namespace MiniBankProject
 
 
 
-                    Console.WriteLine("Account request approved.");
+                    
 
                     // Add the account to the system
-                    string initialRequestStatus = "Approved";
-                    int accountNumber = GitTheLastAccountNumberFromAccountFile() + 1;
+                    string initialRequestStatus1 = "Approved";
+                    int accountNumber = GitTheLastAccountNumberFromAccountFile();
+                    int newAccountNumber = accountNumber + 1;
                     double initialBalanceDouble = double.Parse(initialBalance);
-                    accountNumbers.Add(accountNumber);
+                    accountNumbers.Add(newAccountNumber);
                     accountNames.Add(userName);
                     nationalIds.Add(nationalId);
                     balances.Add(initialBalanceDouble);
-                    requestStatuse.Add(initialRequestStatus);
+                    requestStatuse.Add(initialRequestStatus1);
                     userTypes.Add(userType);
                     hashedPasswords.Add(hashPassword);
 
-                    Console.WriteLine($"Account for {userName} has been created with account number {accountNumber}.{initialRequestStatus}");
+                    Console.WriteLine($"Account for {userName} has been created with account number {account}.{initialRequestStatus1}");
 
                     string requestToRemove = request; // remove from memory
                     string first = GitTheFirstRequestInFileAndDelete().ToString(); // remove from file
-
-                    Console.WriteLine($"Account for {userName} has been created with account number {accountNumber}.");
 
                 }
                 else
                 {
 
                     //// Add the account to the system
-                    string initialRequestStatus1 = "Not Approved";
+                    string initialRequestStatus2 = "Not Approved";
                     int accountNumber = GitTheLastAccountNumberFromAccountFile() + 1;
                     double initialBalanceDouble = double.Parse(initialBalance);
                     accountNumbers.Add(accountNumber);
                     accountNames.Add(userName);
                     nationalIds.Add(nationalId);
                     balances.Add(initialBalanceDouble);
-                    requestStatuse.Add(initialRequestStatus1);
+                    requestStatuse.Add(initialRequestStatus2);
                     userTypes.Add(userType);
                     hashedPasswords.Add(hashPassword);
                     Console.WriteLine("Account Request NotApproved");
@@ -1560,10 +1579,33 @@ namespace MiniBankProject
                     string first = GitTheFirstRequestInFileAndDelete().ToString(); // remove from file
 
 
-                    Console.WriteLine($"Account for {userName} has been rejected with account number {accountNumber}.");
+                    Console.WriteLine($"Account for {userName} has been rejected.");
 
 
 
+                }
+
+                // Save the update request status
+
+                // Load account file
+                var lines = File.ReadAllLines("accounts.txt").ToList();
+
+                // Find the index of this account (by National ID)
+                int index = lines.FindIndex(line =>
+                {
+                    var parts = line.Split(':');
+                    return parts.Length >= 3 && parts[2] == nationalId;
+                });
+
+                if (index != -1)
+                {
+                    var parts = lines[index].Split(':');
+                    if (parts.Length >= 5)
+                    {
+                        parts[4] = (requestStatus.ToLower() == "y") ? "Approved" : "Not Approved"; // update status
+                        lines[index] = string.Join(":", parts);
+                        File.WriteAllLines("accounts.txt", lines); // save updated file
+                    }
                 }
 
                 Console.WriteLine("Press any key to return to the admin menu.");
@@ -1589,21 +1631,23 @@ namespace MiniBankProject
                     string request = createAccountRequests.Peek();
 
                     string[] splitlineOfRequest = request.Split(":");
-                    string userName = splitlineOfRequest[0];
-                    string nationalId = splitlineOfRequest[1];
-                    string initialBalance = splitlineOfRequest[2];
-                    string inialRequestStatus = splitlineOfRequest[3];
-                    string userType = splitlineOfRequest[4];
-                    string hashPassword = splitlineOfRequest[5];
+                    string account = splitlineOfRequest[0];
+                    string userName = splitlineOfRequest[1];
+                    string nationalId = splitlineOfRequest[2];
+                    string initialBalance = splitlineOfRequest[3];
+                    string inialRequestStatus = splitlineOfRequest[4];
+                    string userType = splitlineOfRequest[5];
+                    string hashPassword = splitlineOfRequest[6];
 
 
                     //Console.WriteLine("view account Request");
+                    Console.WriteLine("account number : " + account);
                     Console.WriteLine("user name : " + userName);
                     Console.WriteLine("national Id : " + nationalId);
                     Console.WriteLine("initial balance : " + initialBalance);
                     Console.WriteLine("request status : " + inialRequestStatus);
                     Console.WriteLine("user type : " + userType);
-                    Console.WriteLine("password : " + hashPassword);
+                    //Console.WriteLine("password : " + hashPassword);
 
                 }
 
@@ -1914,7 +1958,7 @@ namespace MiniBankProject
                 if (maxIndex != -1)
                 {
                     string accountNumber = accountNumbers[maxIndex];
-                    string accountName = GetAccountName(accountNumber); 
+                    string accountName = GetAccountName(accountNumber);
                     Console.WriteLine($"Account Number: {accountNumber}, Account Name: {accountName}, Balance: {balances[maxIndex]} OMR ");
 
                     // Remove the richest customer from the list to display the next richest
@@ -1922,6 +1966,31 @@ namespace MiniBankProject
                     accountNumbers.RemoveAt(maxIndex);
                 }
             }
+
+
+            // Top 5 Richest Accounts using LINQ
+            //Console.Clear();
+            //Console.WriteLine("Top 5 Richest Accounts");
+
+            //if (!File.Exists(AccountsFilePath))
+            //{
+            //    Console.WriteLine("Accounts file not found.");
+            //    Console.ReadKey();
+            //    return;
+            //}
+
+            //var top5Accounts = File.ReadAllLines(AccountsFilePath)
+            //    .OrderByDescending(p => double.Parse(p.Split(':')[3]))
+            //    .Take(5);
+
+            //Console.WriteLine("{0,-10} {1,-20} {2,15}", "Acc#", "Name", "Balance");
+            //foreach (var acc in top5Accounts)
+            //{
+            //    var parts = acc.Split(':');
+            //    Console.WriteLine("{0,-10} {1,-20} {2,15} OMR", parts[0], parts[1], parts[3]);
+            //}
+
+
             Console.WriteLine("Press any key to return to the End User Menu.");
             Console.ReadKey();
         }
@@ -2210,7 +2279,7 @@ namespace MiniBankProject
                         requestStatuse.Add(lines[4]);
                         userTypes.Add(lines[5]);
                         hashedPasswords.Add(lines[6]);
-                        isAccountLocked.Add(bool.Parse(lines[7]));
+                        isAccountLocked.Add(lines[7]);
                         phoneNumbers.Add(lines[8]);
                         addresses.Add(lines[9]);
 
