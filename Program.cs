@@ -138,16 +138,15 @@ namespace MiniBankProject
                     Console.WriteLine("2. Withdraw Money");
                     Console.WriteLine("3. Check Balance");
                     Console.WriteLine("4. submit a Review");
-                    Console.WriteLine("5. View account Details");
-                    Console.WriteLine("6. Transfer Between Accounts");
-                    Console.WriteLine("7. Generate Monthly Statement");
-                    Console.WriteLine("8. Display Transactions");
-                    Console.WriteLine("9. Update Account Info");
-                    Console.WriteLine("10. Request a Loan");
-                    Console.WriteLine("11.Show Last ( N ) Transactions");
-                    Console.WriteLine("12. Show Transactions After Date");
-                    Console.WriteLine("13. Show all Transactions");
-                    Console.WriteLine("14. Book an Appointment with Bank Manager");
+                    Console.WriteLine("5. Transfer Between Accounts");
+                    Console.WriteLine("6. Generate Monthly Statement");
+                    Console.WriteLine("7. Display Transactions");
+                    Console.WriteLine("8. Update Account Info");
+                    Console.WriteLine("9. Request a Loan");
+                    Console.WriteLine("10.Show Last ( N ) Transactions");
+                    Console.WriteLine("11. Show Transactions After Date");
+                    Console.WriteLine("12. Show all Transactions");
+                    Console.WriteLine("13. Book an Appointment with Bank Manager");
                     Console.WriteLine("0. Exit to Main Menu");
 
                     string userChoice = Console.ReadLine();
@@ -166,34 +165,31 @@ namespace MiniBankProject
                         case "4":
                             SubmitReview();
                             break;
-                        //case "5":
-                        //    viewAccountDetails();
-                        //    break;
-                        case "6":
+                        case "5":
                             TransferBetweenAccounts();
                             break;
-                        case "7":
+                        case "6":
                             GenerateMonthlyStatement();
                             break;
-                        case "8":
+                        case "7":
                             DisplayTransactions();
                             break;
-                        case "9":
+                        case "8":
                             UpdateAccountInfo();
                             break;
-                        case "10":
+                        case "9":
                             RequestLoan();
                             break;
-                        case "11":
+                        case "10":
                             ShowLastNTransactions();
                             break;
-                        case "12":
+                        case "11":
                             ShowTransactionsAfterDate();
                             break;
-                        case "13":
+                        case "12":
                             PrintAllTransactionsOfUser();
                             break;
-                        case "14":
+                        case "13":
                             BookAppointment();
                             break;
                         case "0":
@@ -1124,7 +1120,7 @@ namespace MiniBankProject
         static void DisplayTransactions()
         {
             Console.Clear();
-            Console.WriteLine("-- View Transactions --");
+            Console.WriteLine("View Transactions");
 
             Console.Write("Enter your account number: ");
             
@@ -1499,6 +1495,7 @@ namespace MiniBankProject
         //1. Approve Account Request
         static void ApproveAccountRequest()
         {
+            try { 
             Console.Clear();
             Console.WriteLine("Request:");
             if (createAccountRequests.Count == 0)
@@ -1610,6 +1607,11 @@ namespace MiniBankProject
 
                 Console.WriteLine("Press any key to return to the admin menu.");
                 Console.ReadKey();
+            }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
          //2. view account requests
@@ -1752,10 +1754,11 @@ namespace MiniBankProject
         }
 
         // 5.Delete Account
+      
         static void DeleteAccount()
         {
             Console.Clear();
-            Console.WriteLine("-- Delete Account --");
+            Console.WriteLine("Delete Account");
             bool isSuccess = false;
 
             while (!isSuccess)
@@ -1763,7 +1766,11 @@ namespace MiniBankProject
                 try
                 {
                     Console.Write("Enter your account number: ");
-                    int enteredAccountNumber = int.Parse(Console.ReadLine());
+                    if (!int.TryParse(Console.ReadLine(), out int enteredAccountNumber))
+                    {
+                        Console.WriteLine("Invalid account number.");
+                        continue;
+                    }
 
                     if (!File.Exists(AccountsFilePath))
                     {
@@ -1777,67 +1784,65 @@ namespace MiniBankProject
                     for (int i = 0; i < lines.Count; i++)
                     {
                         string[] parts = lines[i].Split(':');
-                        if (parts.Length >= 5)
+                        if (parts.Length < 10)
                         {
-                            int fileAccountNumber = int.Parse(parts[0]);
-                            string name = parts[1];
-                            string nationalId = parts[2];
-                            double balance = double.Parse(parts[3]);
+                            continue; 
+                        }
+
+                        if (!int.TryParse(parts[0], out int fileAccountNumber))
+                            continue;
+
+                        if (fileAccountNumber == enteredAccountNumber)
+                        {
+                            accountFound = true;
+
                             string status = parts[4];
 
-                            if (fileAccountNumber == enteredAccountNumber)
+                            if (status == "Approved")
                             {
-                                accountFound = true;
-
-                                if (status == "Approved")
+                                Console.Write("Are you sure you want to delete this account? (y/n): ");
+                                string confirmation = Console.ReadLine();
+                                if (confirmation.ToLower() == "y")
                                 {
-                                    //Console.WriteLine("Account is approved.");
-                                    Console.Write("Are you sure you want to delete this account? (y/n): ");
-                                    string confirmation = Console.ReadLine();
-                                    if (confirmation.ToLower() == "y")
-                                    {
-                                        lines.RemoveAt(i);
-                                        File.WriteAllLines(AccountsFilePath, lines);
-                                        Console.WriteLine("Account deleted successfully!");
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("Account deletion canceled.");
-                                    }
-
-                                    isSuccess = true;
-                                    break;
+                                    lines.RemoveAt(i);
+                                    File.WriteAllLines(AccountsFilePath, lines);
+                                    Console.WriteLine("Account deleted successfully!");
                                 }
-                                else if (status == "Not Approved")
+                                else
                                 {
-                                    Console.WriteLine("Account is not approved yet.");
-                                    break;
+                                    Console.WriteLine("Account deletion canceled.");
                                 }
+
+                                isSuccess = true;
                             }
+                            else
+                            {
+                                Console.WriteLine("Account is not approved yet. Cannot delete.");
+                            }
+
+                            break; // exit loop whether found or not approved
                         }
                     }
 
                     if (!accountFound)
                     {
-                        Console.WriteLine("Account is not found.");
+                        Console.WriteLine("❌ Account not found.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error: " + ex.Message);
+                    Console.WriteLine("❗ Error: " + ex.Message);
                 }
             }
 
-            Console.WriteLine("Press any key to return to the End User Menu.");
+            Console.WriteLine("\nPress any key to return to the End User Menu.");
             Console.ReadKey();
         }
-
         //6. Search Account
-
         static void SearchAccount()
         {
             Console.Clear();
-            Console.WriteLine("-- Search Account --");
+            Console.WriteLine("Search Account");
             try
             {
                 Console.Write("Enter your account number: ");
@@ -1860,6 +1865,7 @@ namespace MiniBankProject
                         string nationalId = parts[2];
                         double balance = double.Parse(parts[3]);
                         string status = parts[4];
+
                         if (fileAccountNumber == enteredAccountNumber)
                         {
                             accountFound = true;
